@@ -1,0 +1,19 @@
+repo: datalad/git-annex
+vars:
+  common_path: 'builds/{year}//{month}//{day}/{type}-{type_id}/{build_commit[:8]}/{wf_name}-{number}-{common_status}/'
+ci:
+  github:
+    path: '{common_path}'
+    # place artifacts along with the logs
+    artifacts_path: '{common_path}'
+    # but releases separately and without subdataset
+    releases_path: 'releases/'
+    workflows:
+    - build-macos.yaml
+    - build-ubuntu.yaml
+    - build-windows.yaml
+since: 2021-04-27T00:00:00Z
+types: [cron, pr, push]
+datalad:
+  enabled: true
+  cfg_proc: text2git
