@@ -12,7 +12,7 @@ ci:
     - build-macos.yaml
     - build-ubuntu.yaml
     - build-windows.yaml
-since: 2021-04-27T00:00:00Z
+since: 2021-03-01T00:00:00Z
 types: [cron, pr, push]
 datalad:
   enabled: true
