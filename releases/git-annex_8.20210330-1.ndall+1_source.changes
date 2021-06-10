@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Wed, 07 Apr 2021 20:20:43 +0000
+Source: git-annex
+Architecture: source
+Version: 8.20210330-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@shub-builder-12590-datalad-datalad-extensions-master-builde.c.shub2-179321.internal>
+Changes:
+ git-annex (8.20210330-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ c6cf14cd0df64069fc34b995c1b2d9006dd18141 4609 git-annex_8.20210330-1~ndall+1.dsc
+ 4bea2572f96cc348e05b8de6149b654be586ecd4 62442468 git-annex_8.20210330-1~ndall+1.tar.gz
+ aeca32cae7ed1b85935b1b09f2e42634f0d6b87c 18423 git-annex_8.20210330-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 252f8eb73512d13786c7beae8be72a78584ec45ede31cf20d1654d9896e256ce 4609 git-annex_8.20210330-1~ndall+1.dsc
+ a1fc732d20f2ca833b091d889e21675a3a3c3d69300a4036a5655bd3fe3c53bd 62442468 git-annex_8.20210330-1~ndall+1.tar.gz
+ 3336bf8ff7669b1de561a731b2bce4bc84e438754b49fe11fcb9d1838f6937fc 18423 git-annex_8.20210330-1~ndall+1_source.buildinfo
+Files:
+ 7f7972eca38a285b365dd9e4ea24f2b1 4609 utils optional git-annex_8.20210330-1~ndall+1.dsc
+ 932d0cdc3b05969912d9f1a311982a4f 62442468 utils optional git-annex_8.20210330-1~ndall+1.tar.gz
+ d8829ca4f4b9de10302cd22b34aeaeb9 18423 utils optional git-annex_8.20210330-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmBuFCMACgkQyY/EnTba
+sX/NmAwAnPdtyybRtzQj5Js05m6r8wbx/JeavuaF1gVFbC6/oYCS3VvwrkY5XHVL
+5l2UtC5lCAPRk+71iRnNYkiuD++gigg3Se146+eiWp56/60BNJ7ZKj4ns6SKM9Qw
+UDcv4/l2xIYRsbSbvvHlcrtvES1YMVv8BeWYPXU6Zz9YtmEjtq9xUN/UliF7Pv/w
+JJ3eTr0os94hkhnXLDLORHmhSjC/BmLv1fPFnoM/w9I/98tsKaPxg5OSnlBcSiBL
+dz/YIv9XHNeEJ1jZgEHioJztsAuI8q+EnJrgPRmpSMGu5ApTlB3Pyv8aXYcxerQs
+r+MAeakW6rotzEUsIim3+65d7utMXZqoxE5tR9InUBgIelTd2pnUBACudw+PlV+o
+533wnLNUB1E4eOM1qNB/IzyhijNudshoTspqNGnuRtYF17ALafu6xIFnJoxfcGBt
+ccdjMDLQMhLzRlgtpXIF95pWaff3FOjldyzO4IQ/kdJYceHFnpEEdwIWiuTYs/H7
+8VyYh3OV
+=qc61
+-----END PGP SIGNATURE-----

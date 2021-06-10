@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Wed, 28 Apr 2021 18:11:47 +0000
+Source: git-annex
+Architecture: source
+Version: 8.20210428-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@shub-builder-12590-datalad-datalad-extensions-master-builde.c.shub2-179321.internal>
+Changes:
+ git-annex (8.20210428-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 11611cd3b0d872f48f71fe041b8b8513abb05e9b 4609 git-annex_8.20210428-1~ndall+1.dsc
+ 01c08fd9238db11fde9e9542d13d11f0437175fe 62923734 git-annex_8.20210428-1~ndall+1.tar.gz
+ 48ee72c425d6d02fc731707c71fff4fd0643c205 18423 git-annex_8.20210428-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 9b9c11ebc158d4f5446a43d058c694ecdbeccbc4b430c6bf1f0d46332ce77b3e 4609 git-annex_8.20210428-1~ndall+1.dsc
+ d1a519b34a070fcc7e2f03fccfcc7f77e836ba11aa3676ff7b1f4a850ee9c240 62923734 git-annex_8.20210428-1~ndall+1.tar.gz
+ 1bc0d76f4a9120bd45533e3ba8bd511b2ae5d4afa0e330ff2154cde129cb6ae5 18423 git-annex_8.20210428-1~ndall+1_source.buildinfo
+Files:
+ 94198e8de3693b1579027b849f03c6bb 4609 utils optional git-annex_8.20210428-1~ndall+1.dsc
+ fe4bcc253cda23d0f33d737dad71e05e 62923734 utils optional git-annex_8.20210428-1~ndall+1.tar.gz
+ 9d4cd31b4b56d5568a86cdbf73dfeb33 18423 utils optional git-annex_8.20210428-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmCJpWoACgkQyY/EnTba
+sX9deAwAw+MIFB+5w5KqkgP+yhFrNy61hQj4bnJiV+zbtVSdpMOUukLOeK6udTu1
+OX9FRfLS4x9Cocu/jA8pmofD8921q+Hzk5fyUYjC/W7TBeUnC52ADYWKBR0mA8c6
+Denv8FyxubvdMFc/g40IMTqCVQn5x9SL2zoYNCuKvW6F0bNfGmS6xbhLFDCggRCR
+51rblvApQ44qZpgVLHvTE7HeE4eHfQp1cozliVW0KpDvsxfHIicP/mRukRVeF8Hu
+MtCdJGhgF6b2zmMCQ0Pf0TIccWsgBz3R98sp7uojbxSJs1NmZ6vhMDLZLQSsN9sM
+ZyynNPMkQQrVD7b+RNNfsDnrmyp47kdBgf/8n3Ccrae/ZoUsrjhFJN2P7BvHypl/
+VtL5Sdu83yZa7xDJ4/NF7w7I9gPiszo3tucMU+G4W40jDtL+9tl/rCd6mSm0nd6S
+Rie0+W8Sr6YVXdD1s/I9Bj3HPpkse8piSBbpxZ3HuYZ+J0VpYg4XQ6ZVeuIvLH14
+BgWy5zWC
+=pH8i
+-----END PGP SIGNATURE-----
