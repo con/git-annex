@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -eu
+
+export PS1=+
+
+source ~/miniconda3/etc/profile.d/conda.sh 
+conda activate tinuous-dev
+
+cd $(dirname $0 | xargs readlink -f | xargs dirname)
+source ../logs.secrets
+curl -fsSL -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/rate_limit 
+tinuous fetch 
