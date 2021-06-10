@@ -7,7 +7,7 @@ ci:
     # place artifacts along with the logs
     artifacts_path: '{common_path}'
     # but releases separately and without subdataset
-    releases_path: 'releases/'
+    releases_path: 'releases/{type_id}/'
     workflows:
     - build-macos.yaml
     - build-ubuntu.yaml
