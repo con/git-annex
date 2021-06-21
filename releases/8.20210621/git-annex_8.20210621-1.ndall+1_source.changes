@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Mon, 21 Jun 2021 16:32:04 +0000
+Source: git-annex
+Architecture: source
+Version: 8.20210621-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@shub-builder-12590-datalad-datalad-extensions-master-builde.c.shub2-179321.internal>
+Changes:
+ git-annex (8.20210621-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ ee5b48978c2471c6e0bc4c481e82b21c142236f0 4609 git-annex_8.20210621-1~ndall+1.dsc
+ 332a1bfb7358fddccec54889d29c4991771ea287 64155267 git-annex_8.20210621-1~ndall+1.tar.gz
+ 42b608435fd4e53f4c4f79e871b1dd1b4121382f 18423 git-annex_8.20210621-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 521158a1c6f299071338b0c658899e943c985dc46ceca07de9a3746c461180e3 4609 git-annex_8.20210621-1~ndall+1.dsc
+ b3af3683e08e53417ffa28bf5bfad1abef04e7cdf7fe63663c8edb535bc6ac78 64155267 git-annex_8.20210621-1~ndall+1.tar.gz
+ c0552c75c7358a12627b32a33c6775fd95d7b5bf07ba116749691e5508f0dd8f 18423 git-annex_8.20210621-1~ndall+1_source.buildinfo
+Files:
+ 876b2b3c04e387e7612e27d3fd0c73a5 4609 utils optional git-annex_8.20210621-1~ndall+1.dsc
+ 0588f23cb21efa78dd25c217b2c08eac 64155267 utils optional git-annex_8.20210621-1~ndall+1.tar.gz
+ 53247e21788a075e44e6912619a57d39 18423 utils optional git-annex_8.20210621-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmDQvwsACgkQyY/EnTba
+sX8Q6Qv/ZhtyE4bDKb+E8BWyW3jDdb29sJGDc0ROxlTls9WimLHKDfQ7CYYWwLMq
+C1LOQjJcP4m8F6sgOAGY44O6bhxVEjF3/ctmd/xQ2LVKnnhCqlj6KuytyJ6A/+Nk
+ivsHBXl7DJeBStRQdb4lsYJWHoblNu0ox2++v4NsnAx/zfJyvQDdQijDTgUnkSok
+YfZw98uarKEA8/GOpaDc8teG67quz8DctK27cCQWiPJoWCSK23B03b+IsEYrIFk3
+U6dpGLLKukTfbcRe8K983UuxNaAkWeR1Xe5Tbye8naozYv/iv0gp41S+QeYsLfBI
+w5VnQrRyUINqbu3jwA3ajXLpXpdOa7s3+CC2bZmtAm2puHw90761IXui/+0eXL1Y
+Mnb6czCprxMVFRUN8KrM18ZBMGOV0jA4JzOJ+VPM98kawjplkkCfPmPs6/v8IM31
+12KEeyGK/WpmXBRuU9GPf/IC3FTxbR38fIVYB/zTrgbqyPuSi0NIeYE1Ty5+6p7B
+NAuN8zeM
+=n1nb
+-----END PGP SIGNATURE-----
