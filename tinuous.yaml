@@ -3,11 +3,12 @@ vars:
   common_path: 'builds/{year}/{month}//{type}-{type_id[:8]}/{wf_file}-{number}-{build_commit[:8]}-{common_status}/'
 ci:
   github:
-    path: '{common_path}'
-    # place artifacts along with the logs
-    artifacts_path: '{common_path}'
-    # but releases separately and without subdataset
-    releases_path: 'releases/{type_id}/'
+    paths:
+      logs: '{common_path}'
+      # place artifacts along with the logs
+      artifacts: '{common_path}'
+      # but releases separately and without subdataset
+      releases: 'releases/{release_tag}/'
     workflows:
     - build-macos.yaml
     - build-ubuntu.yaml
