@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Wed, 30 Jun 2021 16:30:19 +0000
+Source: git-annex
+Architecture: source
+Version: 8.20210630-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@shub-builder-12590-datalad-datalad-extensions-master-builde.c.shub2-179321.internal>
+Changes:
+ git-annex (8.20210630-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 517e66c06ae81648070090195efd6155fc431078 4609 git-annex_8.20210630-1~ndall+1.dsc
+ ef7c3423049de42db97486f503e18a942277a0d8 63665467 git-annex_8.20210630-1~ndall+1.tar.gz
+ 092458fbbdca3440a79746d47e3e5201a8896d45 18423 git-annex_8.20210630-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ d350ef6b83bd9db922f4a167f9ddba29898dd4dbc8826492cf093631cb72d288 4609 git-annex_8.20210630-1~ndall+1.dsc
+ 7ffae06cca4db1e5088e171f4601c3b92e534bfb81f4c563180797988e879538 63665467 git-annex_8.20210630-1~ndall+1.tar.gz
+ 8be467b026aa86afad3bb84a0610632fe5a5c290371f50f0e55ae2b1674e856c 18423 git-annex_8.20210630-1~ndall+1_source.buildinfo
+Files:
+ a52887430cb91d47f8401fc84be7043a 4609 utils optional git-annex_8.20210630-1~ndall+1.dsc
+ 8e44ce5437139500df987bc2d61d8aee 63665467 utils optional git-annex_8.20210630-1~ndall+1.tar.gz
+ 4d378d59a2c26ecd0ca96a8f78f2848f 18423 utils optional git-annex_8.20210630-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmDcnCMACgkQyY/EnTba
+sX+p/wwAq8fAnOvtuq0tv80KB6BvtplW3YL7RZqrnbxgq4TAqQYwDtv3QAKpq9fq
+dXQrvRiGWr6Ys6vatHYUj6ByEGdAD1yCketPDtJ4CzGRiRickNB76Be+efLhhHJG
+F93ZAwBuE94zvAo61oJAzXUtk6TKbfwp59FIiVHKW8DoDhhX1qm6pyDH/HaDOPmt
+8kuLmcren+hKREbcCWjxQA+nUTE9Ny10NM9GZ24+NvRZ4uVn6AQNcQaPBaUkhC8p
+FDIuUz6GZWtt3VsGgauI2D2fq66syTBLDBBovoe3Z1x9yTyqHZV7b2QvWp0E3vOR
+Z87MADjuqZP6FnsMR6d5hKtPSN3F+0S7OB/OcSK7KnbmPfF/X+S7XUcLOqoFgqP9
+qw/3hX3ntNOL9HP2BBQcDTO5p/DFqfEr7aTmvh6KwRuFcJEKpbsgFqK/+bQaV215
+lgHtIidIQzw07CTLDhCMjbQvWQBMCwSA5Jaqo2HqxwedTMWmARKfNHFDCKZ0fOVv
+wCbC6RmR
+=nQmw
+-----END PGP SIGNATURE-----
