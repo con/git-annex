@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Wed, 14 Jul 2021 16:32:42 +0000
+Source: git-annex
+Architecture: source
+Version: 8.20210714-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@shub-builder-12590-datalad-datalad-extensions-master-builde.c.shub2-179321.internal>
+Changes:
+ git-annex (8.20210714-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ ae18798399af909bef1972db9374a16452d2d7d5 4609 git-annex_8.20210714-1~ndall+1.dsc
+ dc01087476b2cc9ecca994228271ef5300de9b79 63663496 git-annex_8.20210714-1~ndall+1.tar.gz
+ 5b4cfd0cec29e1f9f402982c0c623eb0335ce741 18423 git-annex_8.20210714-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 871c12c0acab0bdc843954931e2867248a6d67136a0617425556ab63b17126f7 4609 git-annex_8.20210714-1~ndall+1.dsc
+ 33a76f048e5a532e18c4d3f513d49b9de85d096624f68b90cc4d4a1ec61ac70a 63663496 git-annex_8.20210714-1~ndall+1.tar.gz
+ 4fe0f45521f53185d4d0c52ce1855a17efb102c1eda331688c1caef6e705e149 18423 git-annex_8.20210714-1~ndall+1_source.buildinfo
+Files:
+ bbfa4525404679af42dfeaa065d9c44e 4609 utils optional git-annex_8.20210714-1~ndall+1.dsc
+ 43cefe096ddebca266f83c7a7c1b96b1 63663496 utils optional git-annex_8.20210714-1~ndall+1.tar.gz
+ 08d934dae484788c8425b899e8684b4d 18423 utils optional git-annex_8.20210714-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmDvEbAACgkQyY/EnTba
+sX8KtgwAtyKNeqvUj3TkO8NG/jkpqO3E++xkdmoR7gQuVz0ylG11qrsPgiwxLEA9
++w4RG1vJCPfZFnJXRUDDfIubLBLYhW7mAxKligCSbGIQ6y4J6wG9/q9tz4xCFt8O
+Wd49rLhNiMeyccpaNsDGMsXd80X7jwUA06i05SFJcMVddmCiHHASQiYPYRoLTj4Y
+sM2qMbpRQoontYxKvvlyPAkQ2PpjOh0CW9s8yiDNYm3H3VtSZpafLyPz/2SgV2CL
+/eTZS949GM06ayjG0vUmx64mcdsYcsq5z5Mnz5yvVVBY1l+M9QxjV00O59pjxwYe
+xpRhJBnFyEcaBv7jniZIXcxdZOGtLmWUmk82eI+vBjDin8rPY/IXPHvxzxjnYy8A
+x1vxYYwXyr5yNraSBfTG4o7o1n6hAaPa6wQyJ+yvNnUrUxMt9G0s6mmFvnNu8C8g
+BlmHjfOHmVSgrhq9H0kLs8W+kUxI3T4oOkXJHvjebDpnombWAHu9OxH+xZr1ZaNr
+XD6+4Pjq
+=l5uz
+-----END PGP SIGNATURE-----
