@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Tue, 03 Aug 2021 16:32:30 +0000
+Source: git-annex
+Architecture: source
+Version: 8.20210803-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@shub-builder-12590-datalad-datalad-extensions-master-builde.c.shub2-179321.internal>
+Changes:
+ git-annex (8.20210803-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ f97481ec65e39deaafc948b15dddc57b7813efdd 4609 git-annex_8.20210803-1~ndall+1.dsc
+ f4f3ed5c33126cf54abec0ca312630b55ff8dbd3 64026559 git-annex_8.20210803-1~ndall+1.tar.gz
+ 5696cfa753c56d3945e17a3c4bca3f064095d199 18423 git-annex_8.20210803-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 016fd651a1c6fc80fbd2f9bc12a32492d88d7c336f741d7815a047ec4e091de5 4609 git-annex_8.20210803-1~ndall+1.dsc
+ 80ca3d4b667df05a04742f954a8df723a0bd7a002bc32a4e09943d4aa2272d22 64026559 git-annex_8.20210803-1~ndall+1.tar.gz
+ 5cd5046b361ddfb2262301f4c3679b2fd40e8439233b7c1a3b37ef62b4a5eb0e 18423 git-annex_8.20210803-1~ndall+1_source.buildinfo
+Files:
+ c38b4695176ec0a0aa0453f0f3758c8a 4609 utils optional git-annex_8.20210803-1~ndall+1.dsc
+ 7b1657cfedc0f581c71afd3dcd4a6819 64026559 utils optional git-annex_8.20210803-1~ndall+1.tar.gz
+ 437e65224f69178e49c79452bc230c92 18423 utils optional git-annex_8.20210803-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmEJb6YACgkQyY/EnTba
+sX9nSwv9FL2AlG3TmMwK2uZQXqPGNHns8C8vdlulx2vc7pwep/XiymnA6AkCtFjO
+inAsJTi0Z6hgoRwXvyjKpHDDNhQlHQKsGzp+/6pGpDF0/oWcglpREytqKBUAzTjQ
+MOisZbIAfaoI4Y0vxPrVX3I592dXeVgK7EF4IO101dUzmCbW1XpR51Ghg+qKVEYC
+lOsJq/u7otynmrWUYZkNU5hrSmvaAJL7I6CylhqyNuPI6sw9iEF0YO9lAaR5/tbE
+KdFmJJWGv79g4wjAAa/Azuagg1h1QnRoLYodcMPCBGoXZ/ThU/PR4jvvQYOWBhNW
+hJOrZ6k4fOSmc9tnH76VhxrE6EwDgT/ZL3Y8fRfLJsG3MwNnGNrphUpaTxrhTE+i
+JXKZny3iuxLcndVkPmt5oLPIouRTKus6QpnmnskfaHQilty96LD7Pn2MVqE+DKXE
+v4lf0hHzKk2jCSGeY0A3rKKRC4iVK2VVHT3iIWinR2sp210ZUCbbipjFXJ9tOWfp
+WIjyU+Dr
+=JEWK
+-----END PGP SIGNATURE-----
