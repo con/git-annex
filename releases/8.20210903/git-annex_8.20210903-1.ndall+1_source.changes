@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Fri, 03 Sep 2021 16:11:32 +0000
+Source: git-annex
+Architecture: source
+Version: 8.20210903-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@shub-builder-12590-datalad-datalad-extensions-master-builde.c.shub2-179321.internal>
+Changes:
+ git-annex (8.20210903-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 355ba850947c1517ca3f7c4463068879133d03c2 4609 git-annex_8.20210903-1~ndall+1.dsc
+ 976c3b8e99a432da3f3cf1c9cf4c3c50abffab64 64779189 git-annex_8.20210903-1~ndall+1.tar.gz
+ 3397a2099f72d9db9952bf1659cd0b086b7dfce8 18423 git-annex_8.20210903-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 296769aacdd284cf22d453bf8789c10730f64fe4bca66bd334c009202c7d4213 4609 git-annex_8.20210903-1~ndall+1.dsc
+ fb7971eacfb204cfb0935607e1afb72f07d644b0690aa32627a435bf16636310 64779189 git-annex_8.20210903-1~ndall+1.tar.gz
+ 1a2c3f1b6a6001d6198aff1defc3def9b017daf58bbe40007a4eaf7df80ed737 18423 git-annex_8.20210903-1~ndall+1_source.buildinfo
+Files:
+ b13199ca432abe5be117710e79cfd3fa 4609 utils optional git-annex_8.20210903-1~ndall+1.dsc
+ e4b62bf08ca0c4afb1e5dc666979de06 64779189 utils optional git-annex_8.20210903-1~ndall+1.tar.gz
+ 8ac1226be71036fc13fd2eae2c631938 18423 utils optional git-annex_8.20210903-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmEySTwACgkQyY/EnTba
+sX9KZwv/f76N+/r1k92vXmIrFBIB4i47DVJCtoosqrMBDXZixRAGG0izKEII0eKN
+TkcWytCjVYctkJsQOUHgtoQxzsjEUWd/TCAalIErb1xEEQKSnQPdw9B6ORCvbfXU
+fr7R4N8zJg7brQ7gJoVrib0eyObP7jEGNbLj3cl/ORNPxGTZCWcikgwyJkUsYV/j
+I72esBEknNkPrpaW3TNvbYjyhaiHZkutjYFwoY+MlA5zDK3f371DD4YxTyerN68e
+MTaW7LoNiRI77koxy7LKOLjdZEpB4FIkN2e382PNZUbVZSsCZIGdY+uaGBFDjfnH
+kegIYdp2XC0w9YvrtQbnn6TFhgMEEW/601JpgOr25dsofsl4XX6pl2l6XU+IvWoZ
+KTCxcyNFgiE4Lqy8nMzX2537JqYuY5lJgZobGdZKeUyfzQLoM2pNDAqNVL9nB2Of
+YvJ41TIFZvXBTFOCL1OpONR1hox0wdce0Ccj5t2VJvzfWWredoV4rzlJlP2CSVS7
+cmVRLDkw
+=CgGC
+-----END PGP SIGNATURE-----
