@@ -13,8 +13,8 @@ ci:
     - build-macos.yaml
     - build-ubuntu.yaml
     - build-windows.yaml
-since: 2021-03-01T00:00:00Z
-types: [cron, pr, push]
+since: 2021-09-02T00:00:00Z
+types: [cron, pr, push, manual]
 datalad:
   enabled: true
   cfg_proc: text2git
