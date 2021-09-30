@@ -1,0 +1,48 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Tue, 07 Sep 2021 13:20:27 +0000
+Source: git-annex
+Architecture: source
+Version: 8.20210903+git12-ged789059b-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@shub-builder-12590-datalad-datalad-extensions-master-builde.c.shub2-179321.internal>
+Changes:
+ git-annex (8.20210903+git12-ged789059b-1~ndall+1) neurodebian; urgency=medium
+ .
+   [ Joey Hess ]
+   * borg: Avoid trying to extract xattrs, ACLS, and bsdflags when
+     retrieving from a borg repository.
+ .
+   [  ]
+   * Backported fresh snapshot
+Checksums-Sha1:
+ d44422c6c8a2a39cdfae8fa1f65556f5024c4a2e 4677 git-annex_8.20210903+git12-ged789059b-1~ndall+1.dsc
+ e693a331bf2263014990d67c94e329e6b4e51d26 64804006 git-annex_8.20210903+git12-ged789059b-1~ndall+1.tar.gz
+ c386030b2f243f47571e97e503052f1e777ae674 18491 git-annex_8.20210903+git12-ged789059b-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ ed137bf338e2803b80321afdfb2a16664a3590b8f168fb62d95508b70639d567 4677 git-annex_8.20210903+git12-ged789059b-1~ndall+1.dsc
+ 022629ee4b051b8dab718a14865450fdb943338c7418228cb10b16ac0b69760a 64804006 git-annex_8.20210903+git12-ged789059b-1~ndall+1.tar.gz
+ 2d93151904ddfc1b10540beae6e2f256b5fa3acf8d698704559a2b0980ed1c9f 18491 git-annex_8.20210903+git12-ged789059b-1~ndall+1_source.buildinfo
+Files:
+ 2fd992d340a55d2f03806e03e6f585b2 4677 utils optional git-annex_8.20210903+git12-ged789059b-1~ndall+1.dsc
+ 1dfecc5684a237eab9b89da4414c3fb7 64804006 utils optional git-annex_8.20210903+git12-ged789059b-1~ndall+1.tar.gz
+ fb2f35433997a585835557efc928c957 18491 utils optional git-annex_8.20210903+git12-ged789059b-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmE3ZyMACgkQyY/EnTba
+sX9oRwv/TpRM26GtvrcoxwrZKPNGU4LTxofjYUmACD/mi610qDSYmBV7lAyjupbL
+tfm+i039B7H1v+gJFpWPGdv++0gzo44Hdp9XJyvxtsTMdzmRwPmy6jbXaesYttH5
+IPn+ShoL9S0l/OlgjhIZ6t57mYfFtXfvWMcaHI6gHD8s4thBIDG0xRuhfheOXcge
+E8K/PWC7BKAXrbHmtX2LJJwTPV1RlQkVPvgrSrGN9Im5tMHYYEn5z2Xr9evcv5gX
+dC+FkgisMcnFdVwMEd/lh4MLoJ/fhsihVNv/RlptcS778OCCtLxu1OpKeWkF84Nw
+LA++42emTtkUZS35fq+HfDyGA89+aCm4Klbqw32WvdIxkukA1pP6yniF9XrsVt6H
+uDM5ni6H8le1xqtNjSLqQGd+uuelRlEaM/8KtN6Q5K7yTj3fUkildPAFOlMlo7BN
+8Sh9KOuL6h/N1tqvfo64syIJxNdqsaYyICuiJdpzFIfeaesZuH0ZSBvmXP2Ixxc7
+cKDv8BOd
+=RU89
+-----END PGP SIGNATURE-----

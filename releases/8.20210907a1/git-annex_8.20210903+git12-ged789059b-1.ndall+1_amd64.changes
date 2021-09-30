@@ -1,0 +1,48 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Tue, 07 Sep 2021 13:20:27 +0000
+Source: git-annex
+Binary: git-annex-standalone
+Architecture: amd64
+Version: 8.20210903+git12-ged789059b-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@shub-builder-12590-datalad-datalad-extensions-master-builde.c.shub2-179321.internal>
+Description:
+ git-annex-standalone - manage files with git, without checking their contents into git -
+Changes:
+ git-annex (8.20210903+git12-ged789059b-1~ndall+1) neurodebian; urgency=medium
+ .
+   [ Joey Hess ]
+   * borg: Avoid trying to extract xattrs, ACLS, and bsdflags when
+     retrieving from a borg repository.
+ .
+   [  ]
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 6d8fbe7e7ce9b97e8024cb825b98dd2fa011fa67 67535562 git-annex-standalone_8.20210903+git12-ged789059b-1~ndall+1_amd64.deb
+ bd66474a8406a54f8bec409e60f7ed3f7b434b27 18539 git-annex_8.20210903+git12-ged789059b-1~ndall+1_amd64.buildinfo
+Checksums-Sha256:
+ f927ea56e6d05f8800527c98eb3a07c1a729c8482cfe731ae1bd017a170d9133 67535562 git-annex-standalone_8.20210903+git12-ged789059b-1~ndall+1_amd64.deb
+ 5e7c6e062ba118218f491a3d9b9bf86b85e007c645350111277e98736bedf816 18539 git-annex_8.20210903+git12-ged789059b-1~ndall+1_amd64.buildinfo
+Files:
+ 6a18b1d29da4857de0484e418eea01bb 67535562 utils optional git-annex-standalone_8.20210903+git12-ged789059b-1~ndall+1_amd64.deb
+ 43c4eaea2bd34db6d7b5d79079f406c7 18539 utils optional git-annex_8.20210903+git12-ged789059b-1~ndall+1_amd64.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmE3aV8ACgkQyY/EnTba
+sX+4xgwAsFKMbhRjxlE0UeBGCO4GOFcmlYmfdfAyL3nMQxXmyxz/gl6rQ2eEejcP
+BGqMWQnMobrisgiceu9i7LthyIFHb4analvB6UPdwbEHYnXGB/nq9j6zFWvw0nWI
+MdtM5kFdrf5QnK7ZIodrHrQZfu0aEMkSrSdnILeA87bemt8wnqTfCYPIBUJayuot
+9AvbTFYw6JDvnkMCnlqfxSTzgNtpzp4IIuMAxxQ4tqTpzO1J8GUFxlqywKSwculQ
+trQwXb9JN9lZbyh/Jhjq0UNvZTTruRaXtvjKQRx0Z3/Qcz9QJYm+yJQMDsBatiet
+G9pW+01SPqt34qohtZ3nujGqdaAMy4L52fLctaZOpktYOb+wnscrqnJvMayWiGqt
+kNIpZ5cwcfWeghgtks349WurJ3EA3aZwtJO5jpQprC9YZLqCFsDJUzMzXhGt8Jk7
+EEMIw7/H3IAufgI02lIyubD3dpPT4kG8ySHk/ufBM9Dll2sqEdZ9P/wHjNwLwM47
+u5O/hczK
+=/hg4
+-----END PGP SIGNATURE-----
