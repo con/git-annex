@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Wed, 17 Nov 2021 18:16:25 +0000
+Source: git-annex
+Binary: git-annex-standalone
+Architecture: amd64
+Version: 8.20211117-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@96a860e7dcdd>
+Description:
+ git-annex-standalone - manage files with git, without checking their contents into git -
+Changes:
+ git-annex (8.20211117-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ e9df9a5c0a39827e4e0946617db1bf5e3d5cd11e 49936002 git-annex-standalone_8.20211117-1~ndall+1_amd64.deb
+ b365060697114c72d688bb3849e5d2d2c60f84ee 18072 git-annex_8.20211117-1~ndall+1_amd64.buildinfo
+Checksums-Sha256:
+ be72459b125f79a7207c2a84500bb4575492160ce4ca0824387245a611d50e7f 49936002 git-annex-standalone_8.20211117-1~ndall+1_amd64.deb
+ 82446bb29560928fda220816d6dbdc11f0d8d04f100b084aecb84f0dfe0ec82f 18072 git-annex_8.20211117-1~ndall+1_amd64.buildinfo
+Files:
+ aec2bb87c0cd1671541aea75d42fe9f9 49936002 utils optional git-annex-standalone_8.20211117-1~ndall+1_amd64.deb
+ f933982f30d73cfcf028f6c6187ca2f5 18072 utils optional git-annex_8.20211117-1~ndall+1_amd64.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmGVSToACgkQyY/EnTba
+sX//vgv9EDPDwMfhYHto4wC4WbX01Vd+OG8UrdwdeqtEcKmArJucoe8nAVIzGjmz
+lpZUOvSj2ywS5rYVSG0Oo+0Gm3C1wlMWAd5ZDJasyKod67FtlNsNt++ZbtJbQdoK
+Hj/mIzE7Y05yG2+vN+d1CIvS2szp8M+IHZoONGd1TcGEOSk8UHq2BPkIw0ruN0Ph
+FSellF6lv0NGYuHjE+H5pk/b+WS2JnmNNBhrlBoAiLXSBx1KRmd2CNfAATixe8pZ
+4fh9mCaSePfV4eegeFyuBx+mdYjJhHtVF4jMl9sc8ZSUjaVyHe5pqL5xQ0wWk0zj
+0GA9NAGLpUkGZ+A59g9E1H3IUDFAi0wGYmDAYr5CODvC77FrhX5iRGdiqEFeuNKl
+ooU3KcWRv2Pdcg39r+VgKpcCJUFJg4KrCbc3KlgrKL/VkqGDdOPOStA88L+jc81U
+JqG+slcpRjUbw4T5zChdS3DpuGDDeKgGIXt9lU5DhqmSFjjcw62LrRXQviwmf+Dw
+S11wFgZF
+=iicw
+-----END PGP SIGNATURE-----
