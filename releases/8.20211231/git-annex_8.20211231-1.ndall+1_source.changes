@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Mon, 03 Jan 2022 14:07:00 +0000
+Source: git-annex
+Architecture: source
+Version: 8.20211231-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@96a860e7dcdd>
+Changes:
+ git-annex (8.20211231-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 55eeeec4de37e2bf63f7c901392d1fd9a1c9c142 4609 git-annex_8.20211231-1~ndall+1.dsc
+ 7487ff34ed3d7a9e09f2ef1bb4e06bdd5fb81d96 65543882 git-annex_8.20211231-1~ndall+1.tar.gz
+ 7059e6fc758490aa98300f0ba6b28900da99bff4 17995 git-annex_8.20211231-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 3a6f695812a6dd51887eb61faf5bf0572b6115d55331e5fb0f9d4706b9e9dfd8 4609 git-annex_8.20211231-1~ndall+1.dsc
+ 7e58cc2198b9f737fd9da9f387d917a0029d2180d58dd6f7a3167e15f598b747 65543882 git-annex_8.20211231-1~ndall+1.tar.gz
+ 4f7252bcdf9f3e6acbd970ba6df4cabff33f6ee4c1d4565601fdaeed0355c652 17995 git-annex_8.20211231-1~ndall+1_source.buildinfo
+Files:
+ e1ed20007eb12f3d4b845a88742db49b 4609 utils optional git-annex_8.20211231-1~ndall+1.dsc
+ a103e19199da333245b1ce6965773c86 65543882 utils optional git-annex_8.20211231-1~ndall+1.tar.gz
+ 352d8379cfd762fa89f5c656203e6fcf 17995 utils optional git-annex_8.20211231-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmHTAw0ACgkQyY/EnTba
+sX8rzgv8DfIGNj4PbZGkMuSC3omf6B3FW07Id3pEif0Wx1b0DxpTGM8hJkxFErLt
+jyzoP0VEkoaS+z4rwMbaC0SgXOz4y9QtszlytbbuVp/YCU4Tqx+LQqOLP/uHyvpU
+WBBHSLJfA0LhdPxWndjHl33A6q0/oWlgwdeyAs5gKOQOe+5x6N92BGFG5j1c+tID
+6vZpDdM6s1YwRzu+CYA5rxPIW9UgChasrVEJL04YDCiw7uOpz8K9Sjzp56XzRgbX
+b/+pcJODvYu8so7V1p+G934GGk+6DXztcXubIVkEbiztsVsfamvmGCcrE73kk7A4
+wNU8HZXe4U3u9obYk35ornXoZs8J5LqN4XetwzP6Bil4nBUjtmIe1x/u6nHJ8KrM
+y08L3e59O93GTgg+O4MpM2tDI9zEDlkJRLZByQ8gN2BGqcxiumSSbJfU4B5Al6jj
+Hs/aCMpc3E4o4gqAMCRqBgpfvA8WKyw+0xypTKwsCdDJE/WpzOrs4Rcpr6lj705m
+I0DzP1gb
+=GF8j
+-----END PGP SIGNATURE-----
