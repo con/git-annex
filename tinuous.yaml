@@ -13,6 +13,7 @@ ci:
     - build-macos.yaml
     - build-ubuntu.yaml
     - build-windows.yaml
+    - build-linux-buildenv.yaml
 since: 2021-09-02T00:00:00Z
 types: [cron, pr, push, manual]
 datalad:
