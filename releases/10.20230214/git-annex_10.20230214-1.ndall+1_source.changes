@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Tue, 14 Feb 2023 20:14:09 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20230214-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@9e4cb13125d6>
+Changes:
+ git-annex (10.20230214-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 87079fb30bd93a586a9fb59520c0b39492b54a03 4695 git-annex_10.20230214-1~ndall+1.dsc
+ 6e1b97116d3c7907bbc0c737e35d273373eea6f1 68863680 git-annex_10.20230214-1~ndall+1.tar.gz
+ 771e348c36bc0b49c746a355e6c596faf669076b 18322 git-annex_10.20230214-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 1e9610937b246efd3b5a8f1ac0b8d9d20e6fc4b0f25b4d41308ea6da82d1b9c0 4695 git-annex_10.20230214-1~ndall+1.dsc
+ 88f1ad2e5fc6922395e061a12f290efad538945f53c4160cf732c21cf3cdc7ab 68863680 git-annex_10.20230214-1~ndall+1.tar.gz
+ f42cf7f45c3217f0a76227de9e72e2deb5c2a1d903dae766692560ef9c4da554 18322 git-annex_10.20230214-1~ndall+1_source.buildinfo
+Files:
+ ca957092970ab8a66be07aca3dd87ed0 4695 utils optional git-annex_10.20230214-1~ndall+1.dsc
+ f020ae819696c043cf2831af1cff027d 68863680 utils optional git-annex_10.20230214-1~ndall+1.tar.gz
+ fb9cfd49b47be37c13c59237e88264bb 18322 utils optional git-annex_10.20230214-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmPr65wACgkQyY/EnTba
+sX8pJgwAvZ8RIM/3iYUpYmOrX56nZuYyBvwv+JgUrO2ZSHDejS08zp5Hyqj+o7zD
+4+DOKCBYBdMwd0oHTXzX6vSm51cn/QT+h5z4xk306UWnswMRrVHmanjec8SmRaSS
+ZyLFyr/6Gi5Hru/tRLk5OCK61nCxNr8heFeWUSICQ/MWhiq28hGptBoJ5mMubjv9
+UR4j/BtnXZIweiS7LOv5hIYvypq0GASIns8/n7axtInLhR8KW/xpfrZYbvs1CIhk
+0GrO7C93ElVreqYPYg3tgJM/Rh0UH7NYNRminAS++PB/V/d0MAon6BnrN+BQWjZb
+mBzA21TXnnnZ5yoUr5K5eYJ/ay8MV4+T8G1jI4/eVE/RHSYYRwpJgp16L2TAzRBi
+MEU1F/u3/ew0hdSppDmnkIBGwYRGq4jojeb5atCthB5pPA6/j98cyvTTPSE+ijE0
+G5XBmmUsIOs+gyfcb7+SQZmmfBIwftCo3cZzoUMadpMXLRpE8+qhzeikxGD3tCvt
+p4vtbSvj
+=g7TT
+-----END PGP SIGNATURE-----
