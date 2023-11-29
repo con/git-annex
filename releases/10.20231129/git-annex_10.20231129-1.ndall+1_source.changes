@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Wed, 29 Nov 2023 20:10:46 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20231129-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@localhost>
+Changes:
+ git-annex (10.20231129-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ eb26e7014239bb4dfd70a38bd602c914a4c91e76 4776 git-annex_10.20231129-1~ndall+1.dsc
+ 54bf5d3a568babe495351a2744b61395f53f5e98 73341049 git-annex_10.20231129-1~ndall+1.tar.gz
+ 8369521a1f3e97ec98bc1906f5af742706b56eed 20829 git-annex_10.20231129-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 370207637bdbf2766a705905ca5568fa8fa60cf8d76e25facd5a7732161ab7ed 4776 git-annex_10.20231129-1~ndall+1.dsc
+ 96bb596c043af6c9e4972ed517da52c4b75a2e7bd37bc1fc632f7b4f291bb80f 73341049 git-annex_10.20231129-1~ndall+1.tar.gz
+ 6ece82d045ad63fe1b3e37ec0323a05eae72f8af3d759b49cda83e1d10fddfa1 20829 git-annex_10.20231129-1~ndall+1_source.buildinfo
+Files:
+ f00627291312d590db33864bc2b3f8a3 4776 utils optional git-annex_10.20231129-1~ndall+1.dsc
+ a939c819c8b23b65ae4badef550a7be0 73341049 utils optional git-annex_10.20231129-1~ndall+1.tar.gz
+ eba20c9b95ca547db12b97f3bbc3af5f 20829 utils optional git-annex_10.20231129-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmVnms0ACgkQyY/EnTba
+sX/F+wv9F7pJ8TXsXkZsPvDhVuI9PLdDe6pC2dB03BuDkrB6EBQM66JEXLtqPvjF
+dLAB6sxRzHyEAW9VIshvFrt/A/4cT2gUhtrm8sFDiBxiHad36KI/LypsUELDumR8
+HjNOPvrW2wbo1HnvpH3LUvfs8D+uP7GbMdexgO+Mj2zH2k4xv74AgMM/q+PHWV9M
+BQT/pSfkMi/4pOAbKvpSI5hrJLQfqWsODP/FYdjQBm+Vn4ANsg7SbFhbGFV5wsx8
+qztZu35vi9L4PE11M5CeVePFtBPi2CVbm+zlA7UOX36th4Wce2KcVIl6QJ60IfL0
+XOsAMc8yQl+zGQho0U/Cxja8TbIS0o6FeAH7YRCEfYF2XvuwGZRmq39AjZR5zgSz
+xd6Om7WikAuLQ+iTNLVRF9jtp2N4Tt8vp6lJWz8qfeOArZckSSbj+1aJ34QXYokA
+LTcTAMXbn4MgudNgCJuzoYfUuPaRMvlDbWhVraGyUYCI0YEh8oQZWFFT9shmqyFK
+JRA9bTSX
+=R+6P
+-----END PGP SIGNATURE-----
