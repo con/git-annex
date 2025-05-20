@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Tue, 20 May 2025 16:16:31 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20250520-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@localhost>
+Changes:
+ git-annex (10.20250520-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ eb63e3ce79f5f9e48696855493dd530858a03f31 4897 git-annex_10.20250520-1~ndall+1.dsc
+ e31e3451f194cd0f89166904e64ada0da9d36632 9656024 git-annex_10.20250520-1~ndall+1.tar.gz
+ 8e720385bde1fdb51ec3280ae174d48f43d736cc 21378 git-annex_10.20250520-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 8babdf1266acad1c924efe96e8662dbe19200727166ca2ed46409372950fa78c 4897 git-annex_10.20250520-1~ndall+1.dsc
+ 439ea5e505a2e4fc3a90427e9aa97f1d4b9596210c984ee76055deb6575047fc 9656024 git-annex_10.20250520-1~ndall+1.tar.gz
+ 35f8725d03d64d0ac552da5d51623c39c4c8ba6f151334f154e4c926c27c37c2 21378 git-annex_10.20250520-1~ndall+1_source.buildinfo
+Files:
+ b4ee2242d40432c7a50b7c321c7c99d7 4897 utils optional git-annex_10.20250520-1~ndall+1.dsc
+ 1708436a74afc040d80b6750c0790362 9656024 utils optional git-annex_10.20250520-1~ndall+1.tar.gz
+ ebc21a799d0f8ab97a6d85fed701cd56 21378 utils optional git-annex_10.20250520-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmgsquMACgkQyY/EnTba
+sX8+PQwAhqAgkXSc526HmPqpaeHT51YVdkLBNTSwtOI6L9+7EI+pzd7tFNLPjWqY
+M3ikeE1wSU3EDVwfso5jZjDHGaVyDCE6Nsj8icTnxdok3HjLfwBFnbH4RFUnzvsi
+mi/Ea6FiNrmNsABDpDjqLVp5YcCJ+NuSoQABGhigXIypfL9syz+1LPfMDwMcYjkJ
+nHqLSc7L99COKO16EMnugihqTGdVtoeFY6NBbAXEZDX3YqmvYg4jVoFqUvMMlUx7
+JltDI2cTw/oNKmi0A9SGawVlMf2D2yrYjnjKuXsN5lhS5Zd+4PcY/nCar8HdhJxZ
+lWcRePIr9mHzdB0SIhcvryKEY+MIfsmlhVYRBlecpvch+GmgXaDa8ciJ/sNneAKT
+/jeWl9f9xkwKwnmS7VfZJz7wrlGSqYSo8jVVFWaRWx5Gqzr+5/RI1hCFERPh13u2
+fOmLSOPqABfx04/e/xyKvLcwffKjghR+uINC1M8uenLSTs8NW7UbzS1H8LG7d02U
+1zAP6VcZ
+=P0MG
+-----END PGP SIGNATURE-----
