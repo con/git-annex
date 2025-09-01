@@ -214,3 +214,7 @@
 	path = builds/2025/08
 	url = ./builds/2025/08
 	datalad-id = 95335419-6646-4080-8dbe-4c570435322e
+[submodule "builds/2025/09"]
+	path = builds/2025/09
+	url = ./builds/2025/09
+	datalad-id = 8111490b-d5e5-4b38-b9f4-2485d6bf0b5b
