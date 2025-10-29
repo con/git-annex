@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Wed, 29 Oct 2025 14:14:30 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20251029-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@runnervmxu1zt.phsjm35sxllu3kbyy1grtpjsrd.ex.internal.cloudapp.net>
+Changes:
+ git-annex (10.20251029-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 503505107e37334def8cf2b65a3bdb834c0e72d5 4923 git-annex_10.20251029-1~ndall+1.dsc
+ ca516ffb3debd348b1c72c1fcbb75240ebdbd0e9 9822282 git-annex_10.20251029-1~ndall+1.tar.gz
+ fed639dd45587dda4eeb8e33a9103b3a4019723d 19364 git-annex_10.20251029-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 6cec2004b50a1e48ced1c3af406bb30d813d2b4a5042aa44f51458c3610d23b3 4923 git-annex_10.20251029-1~ndall+1.dsc
+ 41c42ed500481693d84345a8d3afb61bd13772d9f478dc6c48fb095ba4e6b37e 9822282 git-annex_10.20251029-1~ndall+1.tar.gz
+ 360ec9ed9e2a79eee1eb2239662912555d90bb1dbaab667f96a23bd09d2a6011 19364 git-annex_10.20251029-1~ndall+1_source.buildinfo
+Files:
+ 9fa6cc5a8b9f4f1846e75711b800fddc 4923 utils optional git-annex_10.20251029-1~ndall+1.dsc
+ 43b07e4843e3effc10378c00c1856d49 9822282 utils optional git-annex_10.20251029-1~ndall+1.tar.gz
+ 9f878057bc0895dd0a590905c0376f50 19364 utils optional git-annex_10.20251029-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmkCIUkACgkQyY/EnTba
+sX/6OAv/ar+SuXzv2kvtlURFyWLENtAtokHQuOSM7qSbLI9cQ9ek/WSeUL0RQKF8
+TKGxqufJBRpbpMj9sMpn/G30tsjUEPqgdFVXYQ+9f70/14JlmfHCPFpcGw1HJIK9
+mHIFzYHToZ65F+GK3KoemzimpcOo+ihtBoyENaI3H+IaCauubUPunBdfSddO6uYg
+734nlF7fma0T4xueczPRx04z3BDRo6KUfWXfXVlwhqwN8fMUNb6yQvsJyvVWbi3K
+hHOpARuwm0vONeIKL/1mV/3IrE8IEodR4LFDbKPAwGjpbjwQTv/iEnnfrisjtEi4
+82GedSjPgIMd7TItijIWucg5foVmb+z8jpTjkBa4cbyeyw6MFAkPehuKHv9hWBFO
+RYcK/7w+YZgMMHqNrqiaEElCkrZ/hikBEQEp3sAw6flnNSBhG4irgP8Q3oZb2NUm
+3rNWkY/8TMlITmfKXPtHHULtL0JWo98nrBzJMlGBvHMDtkwCeRRgMAWDzoxK3vMR
+8P+5wwgi
+=TWRb
+-----END PGP SIGNATURE-----
