@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Mon, 15 Dec 2025 18:20:30 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20251215-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@runnervm68cqq.ji1a2uz2t1tupgawfdyie1rgtd.dx.internal.cloudapp.net>
+Changes:
+ git-annex (10.20251215-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ a8ae87716fbc475527203b6a2e69eaa93ab6ff4c 4923 git-annex_10.20251215-1~ndall+1.dsc
+ f0ff69e61eb44731a42aed771b38d75d09231e08 9857766 git-annex_10.20251215-1~ndall+1.tar.gz
+ ff4f99213a123b0488c1144262f00564239dc32d 19364 git-annex_10.20251215-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ a53473cf3ff0661c018483ccc7d30ee14c861c806c3db7f72ddf0b5e9a9e7ad6 4923 git-annex_10.20251215-1~ndall+1.dsc
+ 81d9d068214cb87319f880946bc7bab77cad0b2d9617a3de9254d90c426b3870 9857766 git-annex_10.20251215-1~ndall+1.tar.gz
+ 51eb784195c6c0c04b01d6acb172b7e3f173b4776d7b1e15fb39d40bf324a9f6 19364 git-annex_10.20251215-1~ndall+1_source.buildinfo
+Files:
+ 860e5c5e9b73b0bdfae52e1ceaf4e290 4923 utils optional git-annex_10.20251215-1~ndall+1.dsc
+ 8ed9582e5c39676047369c4960c3a02e 9857766 utils optional git-annex_10.20251215-1~ndall+1.tar.gz
+ b44068b521d623bc7cf43826cfbcd639 19364 utils optional git-annex_10.20251215-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmlAUXEACgkQyY/EnTba
+sX+QiwwAkzns7h2iIFwofLpv+hVh+uJju3Asg0wpWUs9aV4JEALWVxiXPiwSBHJF
+7AeEZzO9vmehzeXhzhsG/cMZ73LMC0pOVGrR4EbUTubPf2qmDQcq5p+tC5k2Nj7O
+IDjpAXlml11Z7GudkNVJBYTfUrOqOJCctLkPbH6PopCeLQHw6qUlGQ3oQC7SeL32
+79HEOYYj/EgI1MVR90lVPiUbo8R5/9eQn2gW1bi3F5q5gt9ybqMu/RUN1EWwlnRb
+6Qjeetob4VGsVXQhAQ1+0W+WG66IE+tJ2BFC6PHoVTinTG7Fh3sgfi+k2Oi1zQQ+
+sP6sXrtwvoTLyVq87FKdjG/cpoQmN/CGAyedJS29TtB0Gx86zUJILHR+/Vw04+ZO
+WoozMuz10fmxAh9QCyF4w0xpdy6X7vRXAlrqrb+bf6nhzBPTGIqPPQtrSILCu4Ey
+LHZaj1toLGbkD8VzominymuUtggyIEjZLu9O2NksbZ0VGiUUs+YhZdHmCQ6IdxfO
+ejksK60B
+=ab78
+-----END PGP SIGNATURE-----
