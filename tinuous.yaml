@@ -11,6 +11,7 @@ ci:
       releases: 'releases/{release_tag}/'
     workflows:
     - build-macos.yaml
+    - build-macos-arm64.yaml
     - build-ubuntu.yaml
     - build-windows.yaml
     - build-linux-buildenv.yaml
