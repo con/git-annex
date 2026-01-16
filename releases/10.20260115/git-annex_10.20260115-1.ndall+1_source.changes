@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Fri, 16 Jan 2026 16:23:27 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20260115-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@runnervmmtnos.puxesrl0opjebki3oqy410ky5e.bx.internal.cloudapp.net>
+Changes:
+ git-annex (10.20260115-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ e0f7e14d58106b58476fd639f619e13b9a66cc46 4843 git-annex_10.20260115-1~ndall+1.dsc
+ 5c80b86bc0b9aa09376cf609ffce5c2e34976957 9879128 git-annex_10.20260115-1~ndall+1.tar.gz
+ 984fb6eb0b5754a4c0cf3d34fcf9a2f73d462b7a 19318 git-annex_10.20260115-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 1df9fd1239efc103fefa6c1f041bd5cfedf74c67a8708675112af4325c3593e3 4843 git-annex_10.20260115-1~ndall+1.dsc
+ c4ddc37eaca84e6a4062f9d3b8a35322957f17d04b113e4f6da419fb5684a057 9879128 git-annex_10.20260115-1~ndall+1.tar.gz
+ 91994394b537519e2b1505b99a914e1861e05ed420b38513eb5c98cbdc0e46fb 19318 git-annex_10.20260115-1~ndall+1_source.buildinfo
+Files:
+ 36986f61ae78b33bce16be4118e9a82b 4843 utils optional git-annex_10.20260115-1~ndall+1.dsc
+ c56a3a03636ca8d274b630e9b37809e1 9879128 utils optional git-annex_10.20260115-1~ndall+1.tar.gz
+ 186a9c9a853189eaf7a888bd690de7fe 19318 utils optional git-annex_10.20260115-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmlqZgIACgkQyY/EnTba
+sX+HPAv5AdYN5WHxWwU8oRDIOZV522kbXz3PPYI25X6JvqhFcVo87KMEHzeGGmbW
+8LULifKcVZF6wtwKVToAOsh2jykzGqex1OFtRoRHULQhNP8KPtxPWYx7OPtozWii
+hZ2RU8kk+HY/AtwR8yqyo0gVCUBAaWa5oe9hSXrlp1nqCf6UaCTc6a3IikOafq7Q
+5QvmCmripPaMozTZxH2AWN5GTmyCVNztFpWB07ga1CnbDdGslLkb58RsL5lPsgWK
+wLNr7IhOTiSBK7fV9j4/EIaOexmIIQTDlmcvt/7KWTl6JkJY1ODxnCSHQ8qT/rxS
+DLAjD7ZA9lCKHB4wcTQ/TnsWU14kNHJ0qp3Hv+0hql17jEHry/ZcW3JmMDH12D4E
+kGZmV4zyeZc4JqwVVs+/rjTmQvdejpNMwhXnqaLUdN7XH17WCYon9PFM4CgRg0U/
+7RYanLs/J6/ObGxE+87gufMAb3U2FiCySchg4dqxRL8gzBzR+3cHoQT9mwPrTOjo
+YM9V8zrK
+=7S0P
+-----END PGP SIGNATURE-----
