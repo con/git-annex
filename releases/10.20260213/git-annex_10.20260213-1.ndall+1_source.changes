@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Fri, 13 Feb 2026 18:34:21 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20260213-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@runnervmjduv7.u4zlw0o3edtenjovzbwnxh4oac.phxx.internal.cloudapp.net>
+Changes:
+ git-annex (10.20260213-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 3209d72aa705dc0b1ad2176c056d9fe642f063aa 4890 git-annex_10.20260213-1~ndall+1.dsc
+ ef40f72c08d6b8552ae5f8c8517231d09b32310b 9913781 git-annex_10.20260213-1~ndall+1.tar.gz
+ d75697905b0208f7142940d467dacbedeb0b8cee 19318 git-annex_10.20260213-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 479423e256f515752ba207865a59c9ed54b42f6ee8afd721a3d07318e96934ce 4890 git-annex_10.20260213-1~ndall+1.dsc
+ 3ca1d2c339434275c626818dbc8f021b9bd2abda8b2edafee75e80b1098ce747 9913781 git-annex_10.20260213-1~ndall+1.tar.gz
+ 3c09028bb24e87c67ac3fc4ce6aa14e0e691aa5592e3f7fd106edb3a7ad066ea 19318 git-annex_10.20260213-1~ndall+1_source.buildinfo
+Files:
+ 15a3eb6a066d749dece155e9991e0ac1 4890 utils optional git-annex_10.20260213-1~ndall+1.dsc
+ 45f8f6e9df5a0f5675cd7c104c4f97e3 9913781 utils optional git-annex_10.20260213-1~ndall+1.tar.gz
+ 0da9678c0083a8e95d7c7aceb9b69c76 19318 utils optional git-annex_10.20260213-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmmPbrEACgkQyY/EnTba
+sX8B/wv9GeOYTjIETIKoSffxCu4Y9Nv1TO3FzQywC243jDhxWI+eSUb8EkvjF/1X
+na6G21pWxvqsHbLWN3F/Yj+FeWSs9pgJbpvQxeR1Q4q/VEzUfcseoTedzNk4HWPX
+4pB62bzTvPSXbGhj6z18DTf41D9OzrdASysx97v2Av5UEfXGLVzzBo5jLGcI9fQJ
+Zisla5udIfpHiHUloXUUHQtI/QhF6bJe2ZUi/pg7e29XvG01caX9uAkpxK51hsll
+h6zyJ9v/ZjMN8AUZrEFl/nlyPG3eWcWGctsinbZ8wwazR/Kr3Qb5XDQjbh3CdcJV
+Wi/I0+QEnxTvs47ZkuHTfR+QkEGwCtIXAoVVcsBLtfSwAp7woVAWB+X+iZ5Gk5mx
+Dl7ibQnVRAhiI56MFkVvov9HtX5nkURT0YLN4QT91pm6lVQs0qbShFqenVQoSQBW
+ireSY+vUMRR4dlLk7P61yurBKRfroJbkVEvcunfZBH1HlzFMs6uyxun8Ik/A3OWs
+69diTRqE
+=aFri
+-----END PGP SIGNATURE-----

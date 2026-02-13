@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Fri, 13 Feb 2026 18:34:21 +0000
+Source: git-annex
+Binary: git-annex-standalone
+Architecture: amd64
+Version: 10.20260213-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@runnervmjduv7.u4zlw0o3edtenjovzbwnxh4oac.phxx.internal.cloudapp.net>
+Description:
+ git-annex-standalone - manage files with git, without checking their contents into git -
+Changes:
+ git-annex (10.20260213-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 30e2962ee2cf51fcaa9b9c8ba53b0709196354fb 63926242 git-annex-standalone_10.20260213-1~ndall+1_amd64.deb
+ 333b6108547f79c8ccae7491fe3ccc56962a4694 19395 git-annex_10.20260213-1~ndall+1_amd64.buildinfo
+Checksums-Sha256:
+ b8d1328e6018ee6a39f9774eca30ec8523effd7bf8fd91e47d90ca8844707323 63926242 git-annex-standalone_10.20260213-1~ndall+1_amd64.deb
+ 638b10b7716d70927324272ddafebeffb9d100099f568e80cefef7f3b1adcc86 19395 git-annex_10.20260213-1~ndall+1_amd64.buildinfo
+Files:
+ dc462dad18ce402adb3a78edad461780 63926242 utils optional git-annex-standalone_10.20260213-1~ndall+1_amd64.deb
+ bcb8ad6ae72f24fcc0decc934436b220 19395 utils optional git-annex_10.20260213-1~ndall+1_amd64.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmmPb8sACgkQyY/EnTba
+sX+rVwwAzrZLnaDiSzYWnP6wDKIQ9aSynCD1ZQ9NDw/r03MvtnqfJWN65LEoviWT
+EM0ESIYSpS9Y/0Dh8OwAesooDNtt0MXfoAHsrkTag4pi6ljTxtNhyyRKPsQxrvms
+i6wMIsRuIes/REKHH19p9Ri8HZeisPvcTVRyk1gzURgueUMPeWAAtLbrddn266lA
+aKhNaRjM/eoe4oDQ3nF3hnkzmhHrHXepuMyVVLTedonVceYX4SPP/UcI1dyvaXqp
+ctXubsSWGfaFtwLhxRma+zY5VKgueHFVTY0DVMX2yUFEVykl1THakHCdql7sk+iY
+SpjfstBvnFLpS4pEFjlYrXelaSq+C/11iyP049eelo/ygpQFNDpr/ABZAnABVFK/
+JV/RQS+mAREQFn0I221C+XdLigvrHGli4jDdXkt/udHXTT5UiQIp5lHDyjXR81iy
+9WxpjRe88Yy+aO1/uKKhgfvktJHpaNmJZFovzn2h/gnjvapRg/52wFw6NCLrsRTp
+0qnKtlI2
+=ZXIG
+-----END PGP SIGNATURE-----
