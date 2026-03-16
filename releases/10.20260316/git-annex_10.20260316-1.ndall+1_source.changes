@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Mon, 16 Mar 2026 12:46:18 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20260316-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@runnervm0kj6c.liu2e0sny4beva0y4fvxt5jcyf.gx.internal.cloudapp.net>
+Changes:
+ git-annex (10.20260316-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ bc4dd91f5e571ba35feb44020772446ae0ff0213 4890 git-annex_10.20260316-1~ndall+1.dsc
+ 4537d213a610465b6fb065ad46622691e9292691 9937895 git-annex_10.20260316-1~ndall+1.tar.gz
+ f421341cc611ef876e58d14996db38ded192f0f0 19318 git-annex_10.20260316-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 80182b5a8a53ccfb5c2dfd53ef57584b080551816feede8e028c9e6e578ae1f1 4890 git-annex_10.20260316-1~ndall+1.dsc
+ c3a9cc0e1a0b5ccc254209d2f11b14fc77b02cf5dc4161ed624f2769519a3c84 9937895 git-annex_10.20260316-1~ndall+1.tar.gz
+ 9eebb34a3cb137f93688a67671de798169299957e60d8a5072f826320cee92e0 19318 git-annex_10.20260316-1~ndall+1_source.buildinfo
+Files:
+ c47626c057e8e98727a12fca9ddc39ba 4890 utils optional git-annex_10.20260316-1~ndall+1.dsc
+ 877ff1f1a0dd0fdded09c0075400059f 9937895 utils optional git-annex_10.20260316-1~ndall+1.tar.gz
+ aff53469956bac081c490d9a6cad823e 19318 utils optional git-annex_10.20260316-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmm3+50ACgkQyY/EnTba
+sX8eygv+ML2vgw+Chq3J5SB3S4acw/ZUBem3/LNaA9d5r9durudDgIT/UWIdYQhB
+2YX3XOw42Lup4qlBA0jq396BzX31og2sk7oJu9N35yRDSLXidolUeI7tiHEKZKv4
+aRmsgA5q4pttaU8g9LiQb/j3CkBkF9fHFhTpLuesWIWAsydHk6bbfZHyDfa/TShO
+jD4O4f6U7bm62+HoTnwYSxV0WpOTAhStxkS6AAMnQ77HqbULDCk2SJz2Nl7o7p5Y
+jM4bJhfpegu2HV+CldoUj6vPJwxi3WuTfWY20Nqevwz88IfUlDUhbIdDpCsrg3XS
+yB4WGrWzr1QzwUlASH5HAlrx9fbjZzqluaMwlV/DiP9ZuRoTfRrH7aR4Am5WPI82
+aJxeCE7iN+Zv0XByTVZ0IHa9a4Cuj71bv57KGhtDP1/O3C6GegnM5qpNLi7117n5
+6ITWoiT6+WXFZ8ICJ+HrvJo62FHvuMD3cjxV/Nsiy2Dby88RgGyBFHtq4AvfE4r8
+n3m2pskF
+=vDv3
+-----END PGP SIGNATURE-----
