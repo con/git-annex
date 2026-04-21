@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Tue, 21 Apr 2026 21:07:22 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20260421-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@runnervmeorf1.3eoktrvvyoyuvprzmixvrumbeg.yx.internal.cloudapp.net>
+Changes:
+ git-annex (10.20260421-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 93d6507ee4e955e8e526b515b149cbcb82568513 4890 git-annex_10.20260421-1~ndall+1.dsc
+ 4c9fe4b94d7749555cfc20a921e47a584e5a3d40 9960677 git-annex_10.20260421-1~ndall+1.tar.gz
+ 8b04f2f0988c79f77b3cf7e2d1d51e9258b1ede5 19318 git-annex_10.20260421-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 07ba8ede6cd8e81578303539b97f14b0cc85b81bec646511ec8ca81e9a677481 4890 git-annex_10.20260421-1~ndall+1.dsc
+ ba942cc510da7af3f370b4e9f9723927d1fa0d5a288f27f878ec67516d75706a 9960677 git-annex_10.20260421-1~ndall+1.tar.gz
+ 79c9bdc842b482955366f774fbe08143672606642a49125ccddbe2e605f538a6 19318 git-annex_10.20260421-1~ndall+1_source.buildinfo
+Files:
+ 2386a3db62058eca5b964ac996942061 4890 utils optional git-annex_10.20260421-1~ndall+1.dsc
+ 8cf37df0fa57014d647882d58ae5afd6 9960677 utils optional git-annex_10.20260421-1~ndall+1.tar.gz
+ 21e24c0688839adfa8ea5217f5bf084c 19318 utils optional git-annex_10.20260421-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmnn5w0ACgkQyY/EnTba
+sX8yAQwAnW4ZubuhhPk3c/4B88t8OdjGZJPwyf1rjIQR7L9fZXsoj9mch3+XvcuM
+YY5E2ULByvNZQlTZjt1Op7e3ruZznImMynjoEOkTYD9BOXLGLRuMRSfWrbBkokIX
+0rRozsgEz/JyIlodtVfnFLThljWvb5MLvG+b4DkYyAMa5x8A8ZTjbNpqm+FrgvLM
+P6Vderr9pvH+HMOTgJpk7uohxLFUvJ2/kFAvdXk6XLz+wlpzp2n084tcR1PrXNHB
+KJ9QuwSnZPiiLW2gH0rSjOwnqV4OcWOkma1DPOFvsUclDbA0Zi5oHyuu9OGoWokJ
+9+Jr/mERJIff9S65ir/3mOIO63b46HEYe7mGriisyvGtDYuBUzkiEoK38Ll5xesu
+pltkZOdgyognvNWFmYZPE55RqAuFSc2sWEJTUkzjb46S6VuyI52nWAGuziFEx4ON
+977Ct5M57eo2FcAoG/8M7m562ylg6w3vN6mb96YafUh3MJvFRe9S3MYYYFPc6NU3
+DHl15ov/
+=34+i
+-----END PGP SIGNATURE-----
