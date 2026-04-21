@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Tue, 21 Apr 2026 18:58:42 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20260420-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: <runner@runnervmeorf1.4gsvg4wsvffutjcasgdygelxgf.dx.internal.cloudapp.net>
+Changes:
+ git-annex (10.20260420-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 63a1353e92a743cacf30e6a798c76f5482527346 4890 git-annex_10.20260420-1~ndall+1.dsc
+ 2d5729abc2406f69d683b4ac6df2f2f2d9634375 9961899 git-annex_10.20260420-1~ndall+1.tar.gz
+ cdcaff5420191ceba102ac4e04f008293e7e3eb9 19318 git-annex_10.20260420-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 4719c7d2aa32f8f06096c35b6bf6d4c4413a14ff70e5bd1e3f8f3de3d6deee39 4890 git-annex_10.20260420-1~ndall+1.dsc
+ 288349c9af5819b999b2d7d7642b582c5b653da6ad27f122c7c0cd035e8fc181 9961899 git-annex_10.20260420-1~ndall+1.tar.gz
+ f89c37e3ed5532beac5ded6f6450f7caedb56f7e889a0a7ed6ec4a302df0148c 19318 git-annex_10.20260420-1~ndall+1_source.buildinfo
+Files:
+ 90382435fffc39f3eaab5068c378924c 4890 utils optional git-annex_10.20260420-1~ndall+1.dsc
+ 3475fd24a3f1602621631044cbbda379 9961899 utils optional git-annex_10.20260420-1~ndall+1.tar.gz
+ ee9c55f08e6ab0b6d4d6b2babac7ee9e 19318 utils optional git-annex_10.20260420-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmnnyOUACgkQyY/EnTba
+sX/dawwAsNp19PoYWE9pTzhNegP2P0G5Khxkr/0seWyCvB43CAgzKbEt+nVHhlcv
+ijj0zlMwRwWBAkeTEQgGp2lvcx9QaZeE/6/AUYkW6WR5yHhaKVXpxfKRZz7BmuK8
+az1edSbfhqEU769hEjUjLlUCC9lX4bu0Zw33sUY3x9k4PQKjBZC/d25v0fLnzbQ6
+vt6l72AIROyDpMSh4odp+5ZwVGD7/K4zWNwOSAmnhXtp8C+/RNnoLrPLzND14W+v
+kgn7lw3+voIb+7gJ+gDodw5LfFQsOeq2fvxPjCAYu0EZRbNP6J9qOWIWzctYdKtS
+MCKNR1Kc6Ay0tLKIKWeutHADba7HgYd3IQud9WYpUQGRDPhDPu2AC6ZqVVwzE24s
+ow8JJHctTabfJUSDRqMinNQAEixs43rLOGWcBZdd/qAAoAdrBONVe6CN37NmvMTp
+AI1YAVwOMssDHyXTtUSil8+x7GFMpl/ZDGCtEXcvNBWJD/KybWuStbnNCXK9mMiw
+c9kbMcc2
+=CCzu
+-----END PGP SIGNATURE-----
