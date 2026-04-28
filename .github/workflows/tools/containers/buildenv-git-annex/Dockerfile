@@ -1,4 +1,4 @@
-FROM debian:trixie
+FROM debian:forky
 
 # Apparently snapshots.debian.org has heavy rate limiting policy so we better
 # provide some apt conf tune ups with hope to make apt more robust in talking to it
@@ -21,7 +21,7 @@ RUN echo 'Acquire::http::Dl-Limit "200";' >| /etc/apt/apt.conf.d/20snapshots \
 RUN set -ex; \
     apt update; \
     apt install neurodebian-freeze; \
-    nd_freeze 20250819; \
+    nd_freeze 20260425; \
     f=/etc/apt/sources.list.d/debian.sources; if [ -e "$f" ] && ! grep -q "^URIs:.*snapshot\." "$f"; then mv "$f" "$f.disabled"; fi; \
     sed -i -e 's,\(^deb\) \(.*\),\1 \2\ndeb-src \2,g' /etc/apt/sources.list.d/*.list; \
     apt-get update -qq; \
