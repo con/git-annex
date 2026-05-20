@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Wed, 20 May 2026 14:33:57 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20260520-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: Joey Hess <runner@runnervmrw5os.hppsbykjavouxdtdb545iqfrfg.gx.internal.cloudapp.net>
+Changes:
+ git-annex (10.20260520-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ cf8812d49403dd0a21e668a60d85b73ed4682704 4890 git-annex_10.20260520-1~ndall+1.dsc
+ 4e9af254e656e9112eaf4576a0bc46ce9f9ce852 9982452 git-annex_10.20260520-1~ndall+1.tar.gz
+ 81bab91e48065a5545ff449b459527ebb02d05a8 19549 git-annex_10.20260520-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ d93f2793b0a4627f675a96bbfeeea582cb595f72bd3800bef9d61745ca2de6ef 4890 git-annex_10.20260520-1~ndall+1.dsc
+ 49ed36b0cbe7ac52eabcd2461e3027e2936c4ea28a05eab2c181ac180298170b 9982452 git-annex_10.20260520-1~ndall+1.tar.gz
+ 07153145e189f530f17a86f2234479a4ed8fd344c799e271b9e3865c9d618451 19549 git-annex_10.20260520-1~ndall+1_source.buildinfo
+Files:
+ ad1dfaf3b839af08bf5426bf883ab50e 4890 utils optional git-annex_10.20260520-1~ndall+1.dsc
+ b4c5bc472eadfecf2e91e8faf94a7a7a 9982452 utils optional git-annex_10.20260520-1~ndall+1.tar.gz
+ 8b764816eada53b49b75397a89b9abb0 19549 utils optional git-annex_10.20260520-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmoNxlgACgkQyY/EnTba
+sX8b6gv9FR/iJhFeu9jxHAtW1pcs+dMx83WZjHP5OXGSdWSOfpnBJCrkOrZhIo8P
+hiDZQvt+myxkg83zSviMjDnTarPaAkcGPxoO+PsryH1PZkcmJr/8z+ZXpgaS8Dw6
+NGsYYksxdyysdzI78gb19OvXpYMwggg1O4yjTcYkxUeiFKh8uq+/YW5D+kaUSS/u
+BrsHb2xiq0mFuvQL1b4QKTaND5NNYt+ZSGXY5kdsKgkcixLHdCJkTJhPgJaU9z9g
+BwSeD68xZ9P5r9HjrJksbhKWJdjN/P7UUbQzMDDfSvFHwMNJxpSihMfvALL1CVF6
+eufW+VfyYW6alfJLOtBBFxFg35PQwCc5jk3Og4ge8PBZpu1zKT6ngB0qrsaGPK44
++/lqOSibjsS2zNTSLmJtwoTEbS9ZEg4cHRLB62w9yCU0gD6SmJyxH8GPy1nfcvSG
+OkdjY0hyogxHAFyCLtwqKzCqP1LzocdAFi1J2sXzfNeeBRgZTKnudzrUfEjGkt+f
+Qcvyjtsp
+=wxUk
+-----END PGP SIGNATURE-----
