@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Tue, 26 May 2026 14:39:06 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20260525-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: Joey Hess <runner@runnervmg397c.fjk4s1wcapqezduzfwroafk0pf.yx.internal.cloudapp.net>
+Changes:
+ git-annex (10.20260525-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ 87035e78da3f088f8e20b2cf5fc2c116bd9f99a3 4890 git-annex_10.20260525-1~ndall+1.dsc
+ 6e5f58aebe2dc66228b0ebac86e16bf96a38f87a 9982122 git-annex_10.20260525-1~ndall+1.tar.gz
+ 2b2e31617f9468de333d7eae19254faa2498432c 19549 git-annex_10.20260525-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 9b90557b73609c859a501d2d73524dc4293a927375635c2f8de320d25103efd9 4890 git-annex_10.20260525-1~ndall+1.dsc
+ 4b09c8580b36724a41466c371872677bb25166fa08367b9ce7554ff59225f684 9982122 git-annex_10.20260525-1~ndall+1.tar.gz
+ 46bbd6e5e4d9d4822932954fb2fdf3106a298cd4534375c38b1d7f235248748e 19549 git-annex_10.20260525-1~ndall+1_source.buildinfo
+Files:
+ 34017831918a0c307e6a04b197bbe0f6 4890 utils optional git-annex_10.20260525-1~ndall+1.dsc
+ 841a01a254496b21d53740c05e6e80d6 9982122 utils optional git-annex_10.20260525-1~ndall+1.tar.gz
+ b8012d02e76c00631bc21365d565cd49 19549 utils optional git-annex_10.20260525-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmoVsI4ACgkQyY/EnTba
+sX+WcAwAv7ziqAwd0zMzOf6iaZVHHnCeOU7MINMLQencJa7V1Km0kExBhYEpqyAD
+emXDdrzCJt41nxv+tibBHd99IwnSHUM86ABhwzOv+gpVxUWeIAfzqEzvtqB3Zl12
+2evGXoVRRM/PaX+wVtVfpammjnacZtQb0GoawBTkLhCVIsuktDOBZ5dTqLBq58qz
+BqtMs0P+ws6xNajvD959nIvLW50dqMHjv/CWm0ggEwpQmgMCWiV8VDPYTNgvGgGl
+G1RtqXHcdfRGPDoL+nM/FoGXztE73izGTiX0CNC84AN4Z9f4BF9umVM5deHmoYVw
+W4E8vWsUxVjtTlNO2ohkmrlXgNC3pNY/lcx+8XX/VdD8dSiJkR3jArfrDwU8+2AY
+V1sDFMJJZDPBdeYjEq8Ru9olWmAsxRA69RBHYFIrdK5t/pdonBjEQ6PhACzJieTz
+Gv9DO7BuyWnQ5dEKDFR2wlZsqOFVUSiLdSuYK34PdFX3cU3k1LREZlAGONicO4Y9
+YnkHr96V
+=sO9I
+-----END PGP SIGNATURE-----
