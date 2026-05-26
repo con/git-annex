@@ -15,7 +15,7 @@ jobs:
       - name: Checkout ci-reports repository
         uses: actions/checkout@v6
         with:
-          repository: datalad/git-annex-ci-reports
+          repository: con/git-annex-ci-reports
           token: ${{ secrets.DATALAD_GITHUB_TOKEN }}
           path: git-annex-ci-reports
 

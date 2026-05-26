@@ -3,7 +3,7 @@
 # Apache 2.0 license
 set -eu
 
-: "${TARGET_REPO:=datalad/git-annex}"
+: "${TARGET_REPO:=con/git-annex}"
 : "${TARGET_BRANCH:=master}"
 : "${TARGET_WORKFLOW:=build-ubuntu.yaml}"
 : "${TARGET_PATH:=download}"  # Directory which will be created if doesn't exist

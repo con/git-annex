@@ -30,10 +30,10 @@ from ruamel.yaml import YAML
 
 WINDOW = timedelta(days=1)
 
-WORKFLOW_REPO = "datalad/git-annex"
+WORKFLOW_REPO = "con/git-annex"
 WORKFLOWS = ["build-ubuntu.yaml", "build-macos.yaml", "build-windows.yaml"]
 
-CLIENTS_REPO = "datalad/git-annex-ci-client-jobs"
+CLIENTS_REPO = "con/git-annex-ci-client-jobs"
 CLIENTS_WORKFLOW = "handle-result.yaml"
 
 CLIENT_INFO_FILE = Path(__file__).parents[3] / "clients" / "clients.yaml"
@@ -290,7 +290,7 @@ def main() -> None:
     outfile = sys.argv[1]
     token = get_ghtoken()
     user_agent = make_user_agent(
-        "daily-status.py", url="https://github.com/datalad/git-annex"
+        "daily-status.py", url="https://github.com/con/git-annex"
     )
     cutoff = datetime.now(timezone.utc) - WINDOW
 

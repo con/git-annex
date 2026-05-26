@@ -2,7 +2,7 @@ ndoli:
   # Client location:
   # - Server: ndoli.dartmouth.edu
   # - Account: f006dyc
-  # - datalad/git-annex clone location: ~/git-annex-client/git-annex
+  # - con/git-annex clone location: ~/git-annex-client/git-annex
   tests:
     git-annex-home: |
       set -eux
@@ -24,7 +24,7 @@ smaug:
   # Client location:
   # - Server: smaug.datalad.org
   # - Account: datalad
-  # - datalad/git-annex clone location: ~/git-annex-ci/git-annex
+  # - con/git-annex clone location: ~/git-annex-ci/git-annex
   tests:
     git-annex: |
       set -eux
@@ -37,7 +37,7 @@ openmind7:
   # Client location:
   # - Server: openmind
   # - Account: Managed by @yarikoptic; see him for information
-  # - datalad/git-annex clone location: ~/git-annex-ci/git-annex
+  # - con/git-annex clone location: ~/git-annex-ci/git-annex
   tests:
     git-annex-home: |
       set -eux
