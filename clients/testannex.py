@@ -16,7 +16,7 @@ from click_loglevel import LogLevel
 from pydantic import BaseModel, TypeAdapter
 from ruamel.yaml import YAML
 
-JOB_REPOSITORY = "git@github.com:datalad/git-annex-ci-client-jobs.git"
+JOB_REPOSITORY = "git@github.com:con/git-annex-ci-client-jobs.git"
 RESULT_WORKFLOW = ".github/workflows/handle-result.yaml"
 
 log = logging.getLogger("testannex")

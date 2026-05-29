@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script for updating local clone of datalad/git-annex repository, updating the
+# Script for updating local clone of con/git-annex repository, updating the
 # testannex Conda environment if necessary, and running testannex.py within the
 # testannex environment.
 

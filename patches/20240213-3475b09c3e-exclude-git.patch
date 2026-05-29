@@ -1,5 +1,5 @@
-Description: Exclude datalad/git-annex CI scaffolding from Debian source package
-Origin: vendor, https://github.com/datalad/git-annex/commit/b4a7900e2b
+Description: Exclude con/git-annex CI scaffolding from Debian source package
+Origin: vendor, https://github.com/con/git-annex/commit/b4a7900e2b
 Author: John T. Wodder II <git@varonathe.org>
 Forwarded: not-needed
 Last-Update: 2024-02-16
@@ -18,7 +18,7 @@ index 0000000000..62612d7c71
 +diff-ignore
 +tar-ignore
 +
-+# Also ignore some trees specific to the datalad/git-annex build process:
++# Also ignore some trees specific to the con/git-annex build process:
 +extend-diff-ignore = "(^|/)(\.github|clients|patches)($|/)"
 +tar-ignore = .github
 +tar-ignore = clients

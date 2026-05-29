@@ -149,16 +149,16 @@ jobs:
             git-annex[-_]*.*
             dist/build-version
 
-      - name: Clone datalad/git-annex-ci-client-jobs
+      - name: Clone con/git-annex-ci-client-jobs
         if: contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name)
         uses: actions/checkout@v6
         with:
-          repository: datalad/git-annex-ci-client-jobs
+          repository: con/git-annex-ci-client-jobs
           fetch-depth: 1
           path: client-jobs
           ssh-key: ${{ secrets.CLIENT_JOBS_SSH_KEY }}
 
-      - name: Push installer to datalad/git-annex-ci-client-jobs
+      - name: Push installer to con/git-annex-ci-client-jobs
         if: contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name)
         run: |
           set -ex -o pipefail

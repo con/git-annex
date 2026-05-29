@@ -8,7 +8,7 @@ from ghtoken import get_ghtoken
 __python_requires__ = ">= 3.9"
 __requires__ = ["click ~= 8.0", "ghreq ~= 0.2", "ghtoken ~= 0.1"]
 
-REPO = "datalad/git-annex"
+REPO = "con/git-annex"
 ALL_OS_TYPES = ("macos", "ubuntu", "windows")
 
 
@@ -68,7 +68,7 @@ def main(
     ostypes: tuple[str, ...], pr: bool, ref: str | None, workflow_ref: str
 ) -> None:
     """
-    Trigger builds of datalad/git-annex.
+    Trigger builds of con/git-annex.
 
     Builds can be triggered for the latest code on upstream/master, for a pull
     request, or for an arbitrary commitish in the repository.
@@ -109,7 +109,7 @@ def main(
     option in your `~/.gitconfig` file.
     """
     user_agent = make_user_agent(
-        "dispatch-build", url="https://github.com/datalad/git-annex"
+        "dispatch-build", url="https://github.com/con/git-annex"
     )
     with BuildDispatcher(token=get_ghtoken(), user_agent=user_agent) as client:
         if pr:

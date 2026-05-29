@@ -2,8 +2,8 @@
 """Generate a table of test status badges for a Markdown README"""
 from testannex import parse_clients
 
-BADGE_BASE = "https://github.com/datalad/git-annex-ci-client-jobs/raw/master/badges"
-BASE_REPORT = "https://datalad.github.io/git-annex-ci-reports/"
+BADGE_BASE = "https://github.com/con/git-annex-ci-client-jobs/raw/master/badges"
+BASE_REPORT = "https://con.github.io/git-annex-ci-reports/"
 
 
 def main():
