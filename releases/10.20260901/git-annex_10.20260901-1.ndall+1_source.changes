@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Tue, 01 Sep 2026 19:01:01 +0000
+Source: git-annex
+Architecture: source
+Version: 10.20260901-1~ndall+1
+Distribution: neurodebian
+Urgency: medium
+Maintainer: Richard Hartmann <richih@debian.org>
+Changed-By: Joey Hess <runner@runnervmgx7h7.0jkgfptf2jyebe3d5a3js42muf.cx.internal.cloudapp.net>
+Changes:
+ git-annex (10.20260901-1~ndall+1) neurodebian; urgency=medium
+ .
+   * Backported fresh snapshot
+Checksums-Sha1:
+ dfddefd519efd0436ceb8c856b81b9de50168b83 4850 git-annex_10.20260901-1~ndall+1.dsc
+ 0007c83d6d76446c4e491115f14f32b427c5583e 10042619 git-annex_10.20260901-1~ndall+1.tar.gz
+ 4beb4c55e27907bd2f659caae8fccc66688f2b35 19510 git-annex_10.20260901-1~ndall+1_source.buildinfo
+Checksums-Sha256:
+ 1d1f3944db70c258bb33dbf4229f27115deacb6a0d9f4475d02a131394b5dd90 4850 git-annex_10.20260901-1~ndall+1.dsc
+ 0e813e7ead66081cd674862c48c31101085e65c60d82177422d70fd65550c4c0 10042619 git-annex_10.20260901-1~ndall+1.tar.gz
+ b769090baac202566e6ea510afd1e89f799ecddb57c2d53147713238415aba59 19510 git-annex_10.20260901-1~ndall+1_source.buildinfo
+Files:
+ 3084d1ea1c51912204c4d5c4ab5fbd8d 4850 utils optional git-annex_10.20260901-1~ndall+1.dsc
+ d495733a41c00c6951ed7a491a8bbab2 10042619 utils optional git-annex_10.20260901-1~ndall+1.tar.gz
+ 1305b368d53eacbd082a0b6f8421f4cb 19510 utils optional git-annex_10.20260901-1~ndall+1_source.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQGzBAEBCgAdFiEEE6EJMpYVRYQkXgMAyY/EnTbasX8FAmqXIPAACgkQyY/EnTba
+sX/9TAwAmNhS4jC6Zv06YHQqc3Hf5hgIVRQRCvlOBcLMZ3grKrsdupAKKrvy8Oz/
+Q2uybOz8NLfPtmkgDKbt4LNDzTlTFq1Mmqwao9ZvmeaZyOqMRymmgrgtJBFlP7o2
+yXmKGDCXgjA4XKzfl7i1zNc6qrtUBoU7YdoBuREHHt19K5Q18GedQylfX1CnFRUR
+w4GYukq+ycb+jyldw7vXd9cMwHuYek8D9idDnVP9f0X3x9LNqRslqCZCJyi6AjfO
+UqA1rMHvEbpO3UU1jT9ac1yuDigEqx4Nw54Fjy3XXmaRYvxxNPiPAKQki4t1X8f7
+FmOnV0vahnk/iB7c5BayHj3eYMLt3J8ba8NhpzQr6BQxt7Mm8XWY7KeUTX/RbOMu
+go3L1/f7jPdPNdBTBIb9FPxrjc60J3ePGd99keo1ol/MfsYura+cc5MPDbDR0LH5
+Wksfkw1dfJz2wiQH6ZWVP28kARuz6c3zp1+vNFMRTv+0Ng3DY28Di6bzYvmu3NXj
+ToKFR/QT
+=lR8k
+-----END PGP SIGNATURE-----
