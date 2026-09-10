@@ -70,4 +70,4 @@ My expectation would be that a git-annex push would be able to trigger the oauth
 
 [[!tag projects/INM7]]
 
-> [[fixed]] in forgejo-aneksajo --[[Joey]]
+> [[fixed|done]] in forgejo-aneksajo --[[Joey]]
