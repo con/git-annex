@@ -1062,8 +1062,6 @@ listProxied proxies rs = concat <$> mapM go rs
 	-- Git remotes that are gcrypt or git-lfs special remotes cannot
 	-- proxy. Local git remotes cannot proxy either because
 	-- git-annex-shell is not used to access a local git url.
-	-- Proxing is also yet supported for remotes using P2P
-	-- addresses.
 	canproxy gc r
 		| isP2PHttp' gc = True
 		| remoteAnnexGitLFS gc = False
