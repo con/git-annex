@@ -6,3 +6,5 @@ From my experimentation it seems to be that git-annex does not discover the `ann
 This automatic discovery would be nice for p2phttp support in forgejo-aneksajo, as existing clones could automatically start making use of it as soon as the instance is updated to support it on the server-side and the git-annex version is updated to be recent enough on the client-side.
 
 [[!tag projects/ICE4]]
+
+> [[done]] --[[Joey]]
