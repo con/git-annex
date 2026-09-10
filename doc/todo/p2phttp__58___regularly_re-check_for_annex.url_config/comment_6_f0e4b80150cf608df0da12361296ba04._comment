@@ -1,0 +1,11 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 6"""
+ date="2026-09-10T18:09:41Z"
+ content="""
+I've implemented re-checking of the annex.url config when
+remote.name.annexUrl is configured to an annex+http url.
+
+Going to close this, but if you also need it when
+remote.name.annexUrl is not configured, let me know.
+"""]]

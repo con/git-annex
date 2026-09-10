@@ -377,10 +377,12 @@ tryGitConfigRead gc autoinit r hasuuid
 						setremote (setConfig . annexUrlConfigKey) u
 					_ -> noop
 				return r'
-			Left err -> do
-				set_ignore "not usable by git-annex" False
-				warning $ UnquotedString $ configurl (Git.repoLocationUserVisible r) ++ " " ++ err
-				return r
+			Left err
+				| hasuuid -> return r
+				| otherwise -> do
+					set_ignore "not usable by git-annex" False
+					warning $ UnquotedString $ configurl (Git.repoLocationUserVisible r) ++ " " ++ err
+					return r
 
 	configlist_failed = set_ignore "does not have git-annex installed" True
 	
@@ -474,7 +476,7 @@ inAnnex' repo rmt st@(State connpool duc _ _ _ _) key
 	| Git.repoIsUrl repo = checkremote
 	| otherwise = checklocal
   where
-	checkp2phttp = p2pHttpClient rmt giveup (clientCheckPresent key)
+	checkp2phttp = p2pHttpClient rmt (p2pHttpReprobe rmt) giveup (clientCheckPresent key)
 	checkhttp = do
 		gc <- Annex.getGitConfig
 		Url.withUrlOptionsPromptingCreds (Just (gitconfig rmt)) $ \uo -> 
@@ -514,7 +516,7 @@ dropKey r st proof key = do
 dropKey' :: Git.Repo -> Remote -> State -> Maybe SafeDropProof -> Key -> Annex ()
 dropKey' repo r st@(State connpool duc _ _ _ _) proof key
 	| isP2PHttp r = 
-		clientRemoveWithProof proof key unabletoremove r >>= \case
+		clientRemoveWithProof proof key unabletoremove r (p2pHttpReprobe r) >>= \case
 			RemoveResultPlus True fanoutuuids ->
 				storefanout fanoutuuids
 			RemoveResultPlus False fanoutuuids -> do
@@ -564,9 +566,9 @@ lockKey' :: Git.Repo -> Remote -> State -> Key -> (VerifiedCopy -> Annex r) -> A
 lockKey' repo r st@(State connpool duc _ _ _ _) key callback
 	| isP2PHttp r = do	
 		showLocking r
-		p2pHttpClient r giveup (clientLockContent key) >>= \case
+		p2pHttpClient r (p2pHttpReprobe r) giveup (clientLockContent key) >>= \case
 			LockResult True (Just lckid) ->
-				p2pHttpClient r failedlock $
+				p2pHttpClient r (p2pHttpReprobe r) failedlock $
 					clientKeepLocked lckid (uuid r)
 						failedlock callback
 			_ -> failedlock
@@ -642,7 +644,7 @@ copyFromRemote'' repo r st@(State connpool _ _ _ _ _) key af dest meterupdate vc
 					_ -> return p
 				let consumer = meteredWrite' p' 
 					(writeVerifyChunk iv h)
-				p2pHttpClient r giveup (clientGet key af consumer startsz) >>= \case
+				p2pHttpClient r (p2pHttpReprobe r) giveup (clientGet key af consumer startsz) >>= \case
 					Valid -> return ()
 					Invalid -> giveup "Transfer failed"
 
@@ -725,11 +727,11 @@ copyToRemote' repo r st@(State connpool duc _ _ _ _) key af o meterupdate
 				warning (UnquotedString s)
 				return False
 			Nothing -> return True
-		in p2pHttpClient r (const $ pure $ PutOffsetResultPlus (Offset 0)) (clientPutOffset key) >>= \case
+		in p2pHttpClient r (p2pHttpReprobe r) (const $ pure $ PutOffsetResultPlus (Offset 0)) (clientPutOffset key) >>= \case
 			PutOffsetResultPlus (offset@(Offset (P2P.Offset n))) ->
 				metered (Just meterupdate) key bwlimit $ \_ p -> do
 					let p' = offsetMeterUpdate p (BytesProcessed n)
-					res <- p2pHttpClient r giveup $
+					res <- p2pHttpClient r (p2pHttpReprobe r) giveup $
 						clientPut p' key (Just offset) af object sz check' False
 					case res of
 						PutResultPlus False fanoutuuids -> do
@@ -1075,3 +1077,9 @@ isP2PHttp = isP2PHttp' . gitconfig
 isP2PHttp' :: RemoteGitConfig -> Bool
 isP2PHttp' = isJust . remoteAnnexP2PHttpUrl
 
+-- Re-read the config of the remote to detect a change to
+-- its annex.url, and update the cached remote.name.annexUrl.
+p2pHttpReprobe :: Remote -> Annex Git.Repo
+p2pHttpReprobe rmt = do
+	r <- getRepo rmt
+	tryGitConfigRead (gitconfig rmt) False r True 

@@ -65,48 +65,64 @@ type ClientAction a
 
 p2pHttpClient
 	:: Remote
+	-> Annex Git.Repo
 	-> (String -> Annex a)
 	-> ClientAction a
 	-> Annex a
-p2pHttpClient rmt fallback clientaction = 
-	p2pHttpClientVersions (const True) rmt fallback clientaction >>= \case
+p2pHttpClient rmt reprobeurl fallback clientaction = 
+	p2pHttpClientVersions (const True) rmt reprobeurl fallback clientaction >>= \case
 		Just res -> return res
 		Nothing -> fallback "git-annex HTTP API server is missing an endpoint"
 
 p2pHttpClientVersions
 	:: (ProtocolVersion -> Bool)
 	-> Remote
+	-> Annex Git.Repo
 	-> (String -> Annex a)
 	-> ClientAction a
 	-> Annex (Maybe a)
-p2pHttpClientVersions allowedversion rmt fallback clientaction = do
+p2pHttpClientVersions allowedversion rmt reprobeurl fallback clientaction = do
 	rmtrepo <- getRepo rmt
-	p2pHttpClientVersions' allowedversion rmt rmtrepo fallback clientaction
+	case p2purl of
+		Just p2purl' -> p2pHttpClientVersions' allowedversion p2purl' rmt rmtrepo fallbackreprobe clientaction
+		Nothing -> error "internal"
+  where
+	p2purl = remoteAnnexP2PHttpUrl (gitconfig rmt)
+	-- When unable to speak to the server, re-probe for its url, and
+	-- try again if it changed. This avoids the user needing to manually
+	-- update the remote.name.annexUrl config.
+	fallbackreprobe s = do
+		r <- reprobeurl
+		gc <- Annex.getRemoteGitConfig r
+		case remoteAnnexP2PHttpUrl gc of
+			Just p2purl' | Just p2purl' /= p2purl ->
+				p2pHttpClientVersions' allowedversion p2purl' rmt r fallback clientaction >>= \case
+					Just res -> return res
+					Nothing -> fallback s
+			_ -> fallback s
 
 p2pHttpClientVersions'
 	:: (ProtocolVersion -> Bool)
+	-> P2PHttpUrl
 	-> Remote
 	-> Git.Repo
 	-> (String -> Annex a)
 	-> ClientAction a
 	-> Annex (Maybe a)
-p2pHttpClientVersions' allowedversion rmt rmtrepo fallback clientaction =
-	case p2pHttpBaseUrl <$> remoteAnnexP2PHttpUrl (gitconfig rmt) of
-		Nothing -> error "internal"
-		Just baseurl -> do
-			uo <- getUrlOptions (Just (gitconfig rmt))
-			let clientenv = mkClientEnv (httpManager uo) baseurl
-			let clientenv' = clientenv
-				{ makeClientRequest = \u r -> 
-					applyRequest uo
-						<$> makeClientRequest clientenv u r
-				}
-			ccv <- Annex.getRead Annex.gitcredentialcache
-			Git.CredentialCache cc <- liftIO $ atomically $
-				readTMVar ccv
-			case M.lookup (Git.CredentialBaseURL credentialbaseurl) cc of
-				Nothing -> go clientenv' Nothing False Nothing versions
-				Just cred -> go clientenv' (Just cred) True (credauth cred) versions
+p2pHttpClientVersions' allowedversion p2phttpurl rmt rmtrepo fallback clientaction = do
+	uo <- getUrlOptions (Just (gitconfig rmt))
+	let clientenv = mkClientEnv (httpManager uo) (p2pHttpBaseUrl p2phttpurl)
+	let clientenv' = clientenv
+		{ makeClientRequest = \u r -> 
+			applyRequest uo
+				<$> makeClientRequest clientenv u r
+		}
+	ccv <- Annex.getRead Annex.gitcredentialcache
+	Git.CredentialCache cc <- liftIO $ atomically $
+		readTMVar ccv
+	case M.lookup (Git.CredentialBaseURL credentialbaseurl) cc of
+		Nothing -> go clientenv' Nothing False Nothing versions
+		Just cred -> go clientenv' (Just cred) True (credauth cred) versions
   where
 	versions = filter allowedversion allProtocolVersions
 	go clientenv mcred credcached mauth (v:vs) = do
@@ -151,13 +167,11 @@ p2pHttpClientVersions' allowedversion rmt rmtrepo fallback clientaction =
 			++ " " ++
 		decodeBS (statusMessage (responseStatusCode resp))
 
-	credentialbaseurl = case remoteAnnexP2PHttpUrl (gitconfig rmt) of
-		Just p2phttpurl 
-			| isP2PHttpSameHost p2phttpurl rmtrepo ->
-				Git.repoLocation rmtrepo
-			| otherwise ->
-				p2pHttpUrlString p2phttpurl
-		Nothing -> error "internal"
+	credentialbaseurl
+		| isP2PHttpSameHost p2phttpurl rmtrepo =
+			Git.repoLocation rmtrepo
+		| otherwise =
+			p2pHttpUrlString p2phttpurl
 
 	credauth cred = do
 		ba <- Git.credentialBasicAuth cred
@@ -239,16 +253,17 @@ clientRemoveWithProof
 	-> Key
 	-> Annex RemoveResultPlus
 	-> Remote
+	-> Annex Git.Repo
 	-> Annex RemoveResultPlus
-clientRemoveWithProof proof k unabletoremove remote =
+clientRemoveWithProof proof k unabletoremove remote reprobeurl =
 	case safeDropProofEndTime =<< proof of
 		Nothing -> removeanytime
 		Just endtime -> removebefore endtime
   where
-	removeanytime = p2pHttpClient remote giveup (clientRemove k)
+	removeanytime = p2pHttpClient remote reprobeurl giveup (clientRemove k)
 
 	removebefore endtime =
-		p2pHttpClientVersions useversion remote giveup clientGetTimestamp >>= \case
+		p2pHttpClientVersions useversion remote reprobeurl giveup clientGetTimestamp >>= \case
 			Just (GetTimestampResult (Timestamp remotetime)) ->
 				removebefore' endtime remotetime
 			-- Peer is too old to support REMOVE-BEFORE.
@@ -256,7 +271,7 @@ clientRemoveWithProof proof k unabletoremove remote =
 				
 	removebefore' endtime remotetime =
 		canRemoveBefore endtime remotetime (liftIO getPOSIXTime) >>= \case
-			Just remoteendtime -> p2pHttpClient remote giveup $
+			Just remoteendtime -> p2pHttpClient remote reprobeurl giveup $
 				clientRemoveBefore k (Timestamp remoteendtime)
 			Nothing -> unabletoremove
 	

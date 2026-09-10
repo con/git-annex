@@ -30,7 +30,7 @@ data P2PHttpUrl = P2PHttpUrl
 	{ p2pHttpUrlString :: String
 	, p2pHttpBaseUrl :: BaseUrl
 	}
-	deriving (Show)
+	deriving (Show, Eq)
 
 parseP2PHttpUrl :: String -> Maybe P2PHttpUrl
 parseP2PHttpUrl us

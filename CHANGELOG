@@ -19,6 +19,9 @@ git-annex (10.20260902) UNRELEASED; urgency=medium
     remote that is configured with exporttree=yes but without
     importtree=yes.
   * Fix mask special remote to not hang after the first file.
+  * Automate updating remote.name.annexUrl for annex+https servers,
+    by re-probing the http remote's annex.url config when unable to connect
+    to an annex+https server.
 
  -- Joey Hess <id@joeyh.name>  Wed, 02 Sep 2026 11:04:59 -0400
 
