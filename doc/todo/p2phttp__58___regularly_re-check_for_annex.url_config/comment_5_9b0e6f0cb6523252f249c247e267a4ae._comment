@@ -1,0 +1,23 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 5"""
+ date="2026-09-10T16:41:00Z"
+ content="""
+> Would this include re-checking when remote.name.annexUrl is unset? 
+
+If that would mean checking on every use of the remote, it seems too often.
+
+And even Debian stable now includes a new enough git-annex to support
+p2phttp, so the benefits of that check are more limited now
+to detecting server-side changes.
+
+> Given that the clone happened in the knowledge that "dumb http" was the
+> only supported http protocol and read only, I am now questioning if such
+> a automatic upgrade to p2phttp would really be needed, or even desirable
+
+I think that's a good point.
+
+So I'm inclined to make this todo only about re-checking when 
+remote.name.annexUrl is configured to a annex+http url
+and it fails to connect.
+"""]]
