@@ -1,0 +1,10 @@
+I have a group called external for my different external hard drives and numcopies set to 2.  I was trying to make sure that the external group itself had two copies of everything versus having one copy in the external group and one copy on my laptop.  I tried and got:
+
+```bash
+$ git annex --lackingcopies=external:1
+git-annex: bad value for number of lacking copies
+```
+
+Am I missing something about the syntax?
+
+git annex version: 10.20251215-132
