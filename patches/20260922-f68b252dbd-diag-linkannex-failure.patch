@@ -1,0 +1,126 @@
+Description: CI diagnostic: report why linkAnnex failed
+ The nightly `test-annex (nfs-home)` job intermittently fails with
+ "<file> failed to link to annex" (git-annex add of an unlocked file) or
+ "unlock failed", in a different test each night.  Both messages come
+ from linkAnnex returning LinkAnnexFailed, which is reachable by two
+ paths that say nothing at all about what went wrong:
+ .
+  * linkOrCopy returned Nothing - either an IOException was swallowed by
+    catchDefaultIO/catchBoolIO, or cp / the chmod in preserveGitMode
+    returned False;
+  * the source file's inode cache (inode, size, high resolution mtime)
+    did not compare equal before and after the copy, so checksrcunchanged
+    deleted the destination.
+ .
+ The CI transcripts cannot distinguish these, which makes the NFS
+ failures impossible to diagnose after the fact.  This patch adds a
+ warning to each of those paths, including the before/after inode caches,
+ so that the next failing run says which one it is.
+ .
+ Diagnostic only - no behaviour change beyond the extra messages on
+ paths that already fail.  Drop it once the cause is understood.
+ .
+ Drafted with Claude Code assistance.
+Origin: vendor, https://github.com/con/git-annex
+Author: Yaroslav Halchenko <debian@onerussian.com>
+Forwarded: not-needed
+Last-Update: 2026-09-22
+SPDX-FileCopyrightText: 2026 Yaroslav Halchenko <debian@onerussian.com>
+SPDX-License-Identifier: AGPL-3.0-or-later
+---
+diff --git a/Annex/Content/LowLevel.hs b/Annex/Content/LowLevel.hs
+index 49fc442..0a4daa9 100644
+--- a/Annex/Content/LowLevel.hs
++++ b/Annex/Content/LowLevel.hs
+@@ -47,12 +47,16 @@ linkOrCopy :: Key -> OsPath -> OsPath -> Maybe FileMode -> Annex (Maybe LinkedOr
+ linkOrCopy = linkOrCopy' (annexThin <$> Annex.getGitConfig)
+ 
+ linkOrCopy' :: Annex Bool -> Key -> OsPath -> OsPath -> Maybe FileMode -> Annex (Maybe LinkedOrCopied)
+-linkOrCopy' canhardlink key src dest destmode = catchDefaultIO Nothing $
+-	ifM canhardlink
++linkOrCopy' canhardlink key src dest destmode = go `catchIO` reportfailure
++  where
++	go = ifM canhardlink
+ 		( hardlinkorcopy
+ 		, copy =<< getstat
+ 		)
+-  where
++	reportfailure e = do
++		warning $ UnquotedString $
++			"DIAGNOSTIC: linkOrCopy threw: " ++ show e
++		return Nothing
+ 	hardlinkorcopy = do
+ 		s <- getstat
+ 		if linkCount s > 1
+@@ -75,14 +79,29 @@ checkedCopyFile key src dest destmode = catchBoolIO $
+ 		=<< liftIO (R.getFileStatus (fromOsPath src))
+ 
+ checkedCopyFile' :: Key -> OsPath -> OsPath -> Maybe FileMode -> FileStatus -> Annex Bool
+-checkedCopyFile' key src dest destmode s = catchBoolIO $ do
+-	sz <- liftIO $ getFileSize' src s
+-	ifM (checkDiskSpace' sz (Just $ takeDirectory dest) key 0 True)
+-		( liftIO $
+-			copyFileExternal CopyAllMetaData src dest
+-				<&&> preserveGitMode dest destmode
+-		, return False
+-		)
++checkedCopyFile' key src dest destmode s = go `catchIO` reportfailure
++  where
++	go = do
++		sz <- liftIO $ getFileSize' src s
++		ifM (checkDiskSpace' sz (Just $ takeDirectory dest) key 0 True)
++			( ifM (liftIO $ copyFileExternal CopyAllMetaData src dest)
++				( ifM (liftIO $ preserveGitMode dest destmode)
++					( return True
++					, do
++						diagnostic "preserveGitMode failed"
++						return False
++					)
++				, do
++					diagnostic "copyFileExternal failed"
++					return False
++				)
++			, return False
++			)
++	reportfailure e = do
++		diagnostic ("exception: " ++ show e)
++		return False
++	diagnostic m = warning $ UnquotedString $
++		"DIAGNOSTIC: checkedCopyFile: " ++ m
+ 
+ preserveGitMode :: OsPath -> Maybe FileMode -> IO Bool
+ preserveGitMode f (Just mode)
+diff --git a/Annex/Content.hs b/Annex/Content.hs
+index e3b2202..530b70b 100644
+--- a/Annex/Content.hs
++++ b/Annex/Content.hs
+@@ -631,7 +631,12 @@ linkAnnex fromto key src (Just srcic) dest destmode =
+ 				else Database.Keys.addInodeCaches key [srcic]
+ 			return LinkAnnexNoop
+ 		Nothing -> linkOrCopy key src dest destmode >>= \case
+-			Nothing -> failed
++			Nothing -> do
++				warning $ "DIAGNOSTIC: linkAnnex: linkOrCopy failed for "
++					<> QuotedPath src
++					<> " => "
++					<> QuotedPath dest
++				failed
+ 			Just r -> do
+ 				case fromto of
+ 					From -> thawContent dest
+@@ -649,7 +654,14 @@ linkAnnex fromto key src (Just srcic) dest destmode =
+ 			Database.Keys.addInodeCaches key $
+ 				catMaybes [destic, Just srcic]
+ 			return LinkAnnexOk
+-		_ -> do
++		msrcic' -> do
++			warning $ "DIAGNOSTIC: linkAnnex: inode cache of "
++				<> QuotedPath src
++				<> UnquotedString (" changed while copying it; before: "
++					++ showInodeCache srcic
++					++ "; after: "
++					++ maybe "(missing or not a regular file)"
++						showInodeCache msrcic')
+ 			liftIO $ removeWhenExistsWith removeFile dest
+ 			failed
+ 
