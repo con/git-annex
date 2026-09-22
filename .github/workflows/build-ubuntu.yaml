@@ -224,7 +224,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Send e-mail on failed run
-        if: failure() && contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name)
+        # Branch-local: failures are expected on this branch; do not notify.
+        if: false
         # freeze to v17
         uses: dawidd6/action-send-mail@42942bc2f8fba4e611b459a018967a6a7c78c68c
         with:
@@ -247,8 +248,13 @@ jobs:
     needs: build-package
     strategy:
       matrix:
-        flavor: ["normal", "crippled-tmp", "crippled-home", "nfs-home", "custom-config1"]
+        # Branch-local (diagnostic branch, never merged into master):
+        # only the flavor that hits the intermittent LinkAnnexFailed on NFS,
+        # run several times per invocation since a single run reproduces it
+        # in roughly two nights out of three.
+        flavor: ["nfs-home"]
         os: [ubuntu-24.04]
+        rep: [1, 2, 3]
       fail-fast: false
     steps:
       - name: Checkout this repository
@@ -359,7 +365,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Send e-mail on failed run
-        if: failure() && contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name)
+        # Branch-local: failures are expected on this branch; do not notify.
+        if: false
         # freeze to v17
         uses: dawidd6/action-send-mail@42942bc2f8fba4e611b459a018967a6a7c78c68c
         with:
@@ -378,6 +385,8 @@ jobs:
             See <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}> for more information.
 
   test-annex-more:
+    # Branch-local: not needed for the NFS diagnostic runs.
+    if: false
     runs-on: ubuntu-24.04
     needs: build-package
     steps:
@@ -428,6 +437,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test-datalad:
+    # Branch-local: not needed for the NFS diagnostic runs.
+    if: false
     runs-on: ubuntu-24.04
     needs: build-package
     strategy:
