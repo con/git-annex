@@ -254,6 +254,11 @@ jobs:
         # in roughly two nights out of three.
         flavor: ["nfs-home"]
         os: [ubuntu-24.04]
+        # Attribute-cache experiment: is the LinkAnnexFailed mtime jitter
+        # caused by NFS client attribute caching?  default = what the
+        # nightlies run, actimeo0 = attribute caching off only, noac =
+        # that plus synchronous writes (the usual recommendation).
+        acmode: [default, actimeo0, noac]
         rep: [1, 2, 3]
       fail-fast: false
     steps:
@@ -304,7 +309,14 @@ jobs:
             echo "/tmp/nfsmount_ localhost(rw)" | sudo bash -c 'cat - > /etc/exports'
             sudo apt-get install -y nfs-kernel-server
             sudo exportfs -a
-            sudo mount -t nfs localhost:/tmp/nfsmount_ /tmp/nfsmount
+            case "${{ matrix.acmode }}" in
+              noac)     mountopts=(-o noac) ;;
+              actimeo0) mountopts=(-o actimeo=0) ;;
+              *)        mountopts=() ;;
+            esac
+            sudo mount -t nfs "${mountopts[@]}" localhost:/tmp/nfsmount_ /tmp/nfsmount
+            echo "NFS mount options in effect (acmode=${{ matrix.acmode }}):"
+            findmnt -no OPTIONS /tmp/nfsmount
           fi
 
           case "${{ matrix.flavor }}" in
@@ -351,7 +363,10 @@ jobs:
           cd $HOME
           export | grep -e crippledfs || :
 
-          timeout 3600 git annex test "${test_opts[@]:-}"
+          # Branch-local: noac writes synchronously and is much slower,
+          # so give the suite room rather than have it die at the timeout
+          # and leave the experiment unreadable.
+          timeout 7200 git annex test "${test_opts[@]:-}"
 
       - name: Set final PR status
         if: always() && github.event.inputs.pr != ''
