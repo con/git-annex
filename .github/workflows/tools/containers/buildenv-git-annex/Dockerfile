@@ -8,22 +8,33 @@ RUN echo 'Acquire::http::Dl-Limit "200";' >| /etc/apt/apt.conf.d/20snapshots \
     && echo 'Acquire::https::Dl-Limit "200";' >> /etc/apt/apt.conf.d/20snapshots \
     && echo 'Acquire::Retries "10";' >> /etc/apt/apt.conf.d/20snapshots
 
-# Notes:
-# - in APT for NeuroDebian we have #deb-src  for debian-devel, so we need to change
-#   that too.
-# - APT specification switched away from .list to .sources format in bookworm.
-#   nd_freeze works on policy output so works fine but does not disable old source
-#   file, so we are moving it to .disabled "manually" here if we do not detect
-#   use of snapshot url there (we might implement support that way).
-#   Remove after https://github.com/neurodebian/neurodebian/issues/90 is fixed/released
-#   for the used date of nd_freeze.
-# - Originally used neurodebian, now switched to debian based for trixie
+# Pin APT to a snapshot.debian.org timestamp by writing the deb822 sources
+# directly, instead of via nd_freeze.  nd_freeze scrapes snapshot.debian.org
+# with a raw HTTP/1.1 socket read that has no timeout, and a build once hung
+# there silently until the 6h job limit.  snapshot.debian.org serves the most
+# recent snapshot at or before the given timestamp.  deb-src is needed for
+# `apt-get build-dep`.  The Release files on snapshots are past their
+# Valid-Until, hence Check-Valid-Until=false.
+# NB: the build-linux-buildenv workflow parses DEBIAN_SNAPSHOT for image tags.
+ARG DEBIAN_SNAPSHOT=20260924T000000Z
 RUN set -ex; \
-    apt update; \
-    apt install neurodebian-freeze; \
-    nd_freeze 20260425; \
-    f=/etc/apt/sources.list.d/debian.sources; if [ -e "$f" ] && ! grep -q "^URIs:.*snapshot\." "$f"; then mv "$f" "$f.disabled"; fi; \
-    sed -i -e 's,\(^deb\) \(.*\),\1 \2\ndeb-src \2,g' /etc/apt/sources.list.d/*.list; \
+    echo 'Acquire::Check-Valid-Until "false";' >| /etc/apt/apt.conf.d/10no-check-valid-until; \
+    echo 'Acquire::http::Timeout "120";' >> /etc/apt/apt.conf.d/20snapshots; \
+    rm -f /etc/apt/sources.list /etc/apt/sources.list.d/*; \
+    printf '%s\n' \
+      'Types: deb deb-src' \
+      "URIs: http://snapshot.debian.org/archive/debian/${DEBIAN_SNAPSHOT}" \
+      'Suites: forky forky-updates' \
+      'Components: main' \
+      'Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp' \
+      '' \
+      'Types: deb deb-src' \
+      "URIs: http://snapshot.debian.org/archive/debian-security/${DEBIAN_SNAPSHOT}" \
+      'Suites: forky-security' \
+      'Components: main' \
+      'Signed-By: /usr/share/keyrings/debian-archive-keyring.pgp' \
+      >| /etc/apt/sources.list.d/debian-snapshot.sources; \
+    cat /etc/apt/sources.list.d/debian-snapshot.sources; \
     apt-get update -qq; \
     export DEBIAN_FRONTEND=noninteractive; \
     apt-get build-dep -y -q git-annex; \
