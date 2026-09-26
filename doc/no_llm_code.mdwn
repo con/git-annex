@@ -66,7 +66,7 @@ Rather than use ram, git-annex continues to use the unmaintained
 But ram is an dependency of other dependencies, and these in particular
 depend on 0.21.0 or newer:
 
-* crypton since 1.1.0
+* crypton since 1.1.0 (itself containing LLM code)
 * tls since 2.3.1
 
 [Reverse dependencies of ram](https://packdeps.haskellers.com/reverse/ram)
@@ -109,6 +109,15 @@ The person who took over magic from its long-time maintainer has not
 disclosed their earlier LLM use, but it is apparent, including in their
 communications to [[Joey]] about incorrect LLM-generated statements in the
 changelog.
+
+### crypton
+
+[cryton](https://hackage.haskell.org/package/crypton) since 1.1.0
+
+[First LLM generated code](https://github.com/kazu-yamamoto/crypton/commit/cfe36d439a075aa4cce72baafa8bbcc58dabf85b)
+
+git-annex supports being built with older versions. The botan build flag
+enables using botan for most things rather than crypton.
 
 ### Cabal
 
