@@ -24,7 +24,7 @@ jobs:
         run: |
           set -eux
           release=$(sed -nE -e '/FROM/s,.*:(.*),\1,gp' Dockerfile)
-          freeze_date=$(sed -nE '/nd_freeze/s,.* (20[0-9]*).*,\1,gp' Dockerfile)
+          freeze_date=$(sed -nE 's,^ARG DEBIAN_SNAPSHOT=(20[0-9]{6}).*,\1,p' Dockerfile)
           commit=$(git rev-parse --short=4 HEAD)
           docker build \
             -t "datalad/buildenv-git-annex:latest" \
