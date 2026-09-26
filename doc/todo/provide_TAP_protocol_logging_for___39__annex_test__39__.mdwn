@@ -1,0 +1,5 @@
+ATM outputs from `git annex test` are custom. I personally find it difficult to find results of failure etc. But what is more important is that it is difficult to script deterministic analytics on top of such results (e.g. as xfailing some specific tests in some specific contexts). I know of [TAP](https://testanything.org) protocol which I believe a number of generic testing harnesses support. May be could be some form of `--output-format text,tap` options for `git annex test`.
+There is also a somewhat related [SARIF](https://sarifweb.azurewebsites.net/) (Static Analysis Results Interchange Format), which was suggested in another scope, but not familiar with it at all in practice.
+
+[[!meta author=yoh]]
+[[!tag projects/repronim]]
