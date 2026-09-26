@@ -239,7 +239,7 @@ jobs:
         run: |
           # apparently order is not alphabetic, so cannot be relied upon for a single grep
           flags=$(git annex version | grep 'build flags:')
-          for f in Assistant MagicMime Servant S3; do
+          for f in Assistant MagicMime Servant S3 OsPath; do
             echo -n "Checking for $f: "
             echo "$flags" | grep --color "$f" || { echo "FAIL"; exit 1; }
           done
