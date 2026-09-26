@@ -1,0 +1,62 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 1"""
+ date="2026-09-26T16:45:53Z"
+ content="""
+<https://hackage.haskell.org/package/tasty-tap> can be used to do this.
+
+A proof of concept patch is below.
+
+It always uses TAP format, which I would not want because personally I
+find it hard to read and scan. Using TAP needs to be an option.
+
+Note that every concurrent test job produces its own TAP output.
+To avoid that problem, in TAP mode the test suite would need to not run
+concurrent tests.
+
+The added dependency will need a build flag as tasty-tap is not packaged in eg, Debian.
+
+	diff --git a/Test/Framework.hs b/Test/Framework.hs
+	index f47de2c91d..8729bbc531 100644
+	--- a/Test/Framework.hs
+	+++ b/Test/Framework.hs
+	@@ -20,6 +20,7 @@ import Test.Tasty.HUnit
+	 import Test.Tasty.Options
+	 import Test.Tasty.Ingredients.Rerun
+	 import Test.Tasty.Ingredients.ConsoleReporter
+	+import Test.Tasty.Runners.TAP
+	 import qualified Test.Tasty.Patterns.Types as TP
+	 import Options.Applicative.Types
+	 import Control.Concurrent
+	@@ -855,9 +856,7 @@ parallelTestRunner' numjobs opts mkts
+	 		args <- getArgs
+	 		pp <- fromOsPath <$> Annex.Path.programPath
+	 		termcolor <- hSupportsANSIColor stdout
+	-		let ps = if useColor (lookupOption tastyopts) termcolor
+	-			then "--color=always":args
+	-			else "--color=never":args
+	+		let ps = args
+	 		let runone n = do
+	 			let subdir = fromOsPath $ toOsPath tmpdir </> toOsPath (show n)
+	 			ensuredir subdir
+	@@ -907,6 +906,7 @@ tastyParser ts = suiteOptionParser ingredients (topLevelTestGroup ts)
+	 ingredients :: [Ingredient]
+	 ingredients =
+	 	[ listingTests
+	+	, tapRunner
+	 	, rerunningTests [consoleTestReporter]
+	 	]
+	 
+	diff --git a/git-annex.cabal b/git-annex.cabal
+	index d4970cfea5..b48f2323de 100644
+	--- a/git-annex.cabal
+	+++ b/git-annex.cabal
+	@@ -277,6 +277,7 @@ Executable git-annex
+	    tasty-hunit,
+	    tasty-quickcheck,
+	    tasty-rerun,
+	+   tasty-tap,
+	    ansi-terminal >= 0.9,
+	    DAV (>= 1.0),
+	    network (>= 3.0.0.0),
+"""]]
