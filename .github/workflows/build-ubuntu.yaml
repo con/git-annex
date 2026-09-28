@@ -253,13 +253,16 @@ jobs:
         # run several times per invocation since a single run reproduces it
         # in roughly two nights out of three.
         flavor: ["nfs-home"]
-        os: [ubuntu-24.04]
-        # Attribute-cache experiment: is the LinkAnnexFailed mtime jitter
-        # caused by NFS client attribute caching?  default = what the
-        # nightlies run, actimeo0 = attribute caching off only, noac =
-        # that plus synchronous writes (the usual recommendation).
-        acmode: [default, actimeo0, noac]
-        rep: [1, 2, 3]
+        os: [ubuntu-22.04, ubuntu-24.04]
+        # Environment experiment. actimeo=0 already showed the failure is
+        # NFS attribute caching (run 35882579073, 3/3 vs 0/3). Same
+        # git-annex build passes on con/eval-under, which differs from
+        # this job in exactly two ways -- runner image (22.04 vs 24.04,
+        # visible as `fatal_neterrors` in the mount options, so a
+        # different NFS client kernel) and an `async` export. Vary both.
+        acmode: [default]
+        export_mode: [default, async]
+        rep: [1, 2]
       fail-fast: false
     steps:
       - name: Checkout this repository
@@ -306,7 +309,12 @@ jobs:
           fi
           if echo "${{ matrix.flavor }}" | grep -q "nfs" ; then
             mkdir /tmp/nfsmount_ /tmp/nfsmount
-            echo "/tmp/nfsmount_ localhost(rw)" | sudo bash -c 'cat - > /etc/exports'
+            case "${{ matrix.export_mode }}" in
+              async) exportopts="rw,async" ;;
+              *)     exportopts="rw" ;;
+            esac
+            echo "/tmp/nfsmount_ localhost($exportopts)" | sudo bash -c 'cat - > /etc/exports'
+            echo "export line: $(cat /etc/exports)"
             sudo apt-get install -y nfs-kernel-server
             sudo exportfs -a
             case "${{ matrix.acmode }}" in
@@ -317,6 +325,8 @@ jobs:
             sudo mount -t nfs "${mountopts[@]}" localhost:/tmp/nfsmount_ /tmp/nfsmount
             echo "NFS mount options in effect (acmode=${{ matrix.acmode }}):"
             findmnt -no OPTIONS /tmp/nfsmount
+            echo "kernel: $(uname -r)  runner: ${{ matrix.os }}"
+            echo "nfs-utils: $(dpkg-query -W -f='${Version}' nfs-common 2>/dev/null || echo '?')"
           fi
 
           case "${{ matrix.flavor }}" in
