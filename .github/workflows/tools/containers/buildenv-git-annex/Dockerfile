@@ -16,7 +16,7 @@ RUN echo 'Acquire::http::Dl-Limit "200";' >| /etc/apt/apt.conf.d/20snapshots \
 # `apt-get build-dep`.  The Release files on snapshots are past their
 # Valid-Until, hence Check-Valid-Until=false.
 # NB: the build-linux-buildenv workflow parses DEBIAN_SNAPSHOT for image tags.
-ARG DEBIAN_SNAPSHOT=20260924T000000Z
+ARG DEBIAN_SNAPSHOT=20261006T000000Z
 RUN set -ex; \
     echo 'Acquire::Check-Valid-Until "false";' >| /etc/apt/apt.conf.d/10no-check-valid-until; \
     echo 'Acquire::http::Timeout "120";' >> /etc/apt/apt.conf.d/20snapshots; \
@@ -38,6 +38,8 @@ RUN set -ex; \
     apt-get update -qq; \
     export DEBIAN_FRONTEND=noninteractive; \
     apt-get build-dep -y -q git-annex; \
+    # git-annex >= 10.20261005 Build-Depends on ram, Debian's git-annex not (yet)
+    apt-get install -y libghc-ram-dev; \
     # Needed additional tools etc
     apt-get install -y devscripts quilt locales; \
     # Some helper utilities just in case
