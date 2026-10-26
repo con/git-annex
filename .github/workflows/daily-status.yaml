@@ -45,8 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.DATALAD_GITHUB_TOKEN }}
 
       - name: Send e-mail
-        # freeze to v6
-        uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968
+        uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968 # v22
         with:
           server_address: ${{ secrets.NOTIFY_SMTP_HOST }}
           server_port: ${{ secrets.NOTIFY_SMTP_PORT }}
