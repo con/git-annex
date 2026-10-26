@@ -3,6 +3,9 @@ name: Update mirror
 on:
   schedule:
     - cron: '0 */2 * * *'
+  # To mirror (and build) e.g. a rushed-in security release right away,
+  # without waiting for the next (often delayed or skipped) scheduled run
+  workflow_dispatch:
 
 jobs:
   update:
