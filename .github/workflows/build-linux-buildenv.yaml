@@ -23,7 +23,7 @@ jobs:
         working-directory: .github/workflows/tools/containers/buildenv-git-annex
         run: |
           set -eux
-          release=$(sed -nE -e '/FROM/s,.*:(.*),\1,gp' Dockerfile)
+          release=$(sed -nE -e 's,^FROM debian:([a-z]+).*,\1,p' Dockerfile)
           freeze_date=$(sed -nE 's,^ARG DEBIAN_SNAPSHOT=(20[0-9]{6}).*,\1,p' Dockerfile)
           commit=$(git rev-parse --short=4 HEAD)
           docker build \
