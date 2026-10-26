@@ -258,7 +258,13 @@ jobs:
             echo "/tmp/nfsmount_ localhost(rw)" | sudo bash -c 'cat - > /etc/exports'
             sudo apt-get install -y nfs-kernel-server
             sudo exportfs -a
-            sudo mount -t nfs localhost:/tmp/nfsmount_ /tmp/nfsmount
+            # actimeo=0 (no attribute caching): with the 6.17 kernel's NFS
+            # client a cached mtime of an untouched file can change between
+            # two stats, which git-annex's exact InodeCache comparison takes
+            # for a modification ("failed to link to annex", "content changed
+            # while it was being sent").  Drop once fixed upstream; see
+            # https://github.com/con/git-annex/issues/294
+            sudo mount -t nfs -o actimeo=0 localhost:/tmp/nfsmount_ /tmp/nfsmount
           fi
 
           case "${{ matrix.flavor }}" in
