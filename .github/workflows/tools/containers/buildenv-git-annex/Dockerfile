@@ -1,4 +1,9 @@
-FROM debian:forky
+# Use a dated tag, not the floating debian:forky, and keep it no newer than
+# DEBIAN_SNAPSHOT below (bump both together): packages preinstalled in a newer
+# image (e.g. libc6) are newer than the snapshot's, and apt then cannot satisfy
+# the build-deps (libc6-dev from the snapshot requires the snapshot's libc6).
+# NB: the build-linux-buildenv workflow takes the suite name from this line.
+FROM debian:forky-20261005
 
 # Apparently snapshots.debian.org has heavy rate limiting policy so we better
 # provide some apt conf tune ups with hope to make apt more robust in talking to it

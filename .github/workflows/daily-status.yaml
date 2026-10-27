@@ -10,17 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Checkout ci-reports repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: con/git-annex-ci-reports
           token: ${{ secrets.DATALAD_GITHUB_TOKEN }}
           path: git-annex-ci-reports
 
       - name: Install Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '^3.10'
 
@@ -45,8 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.DATALAD_GITHUB_TOKEN }}
 
       - name: Send e-mail
-        # freeze to v6
-        uses: dawidd6/action-send-mail@03a02a49409134de07636216fb379a026c52991e
+        uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968 # v22
         with:
           server_address: ${{ secrets.NOTIFY_SMTP_HOST }}
           server_port: ${{ secrets.NOTIFY_SMTP_PORT }}

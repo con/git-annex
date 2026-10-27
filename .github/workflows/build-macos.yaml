@@ -29,7 +29,7 @@ jobs:
       build-version: ${{ steps.build-version.outputs.version }}
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -109,7 +109,7 @@ jobs:
         run: stack setup
 
       - name: Enable Stack cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.stack
           key: cache-stack-macos-${{ hashFiles('stack.yaml.lock') }}-${{ hashFiles('git-annex.cabal') }}
@@ -178,8 +178,7 @@ jobs:
 
       - name: Send e-mail on failed run
         if: failure() && contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name)
-        # freeze to v17
-        uses: dawidd6/action-send-mail@03a02a49409134de07636216fb379a026c52991e
+        uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968 # v22
         with:
           server_address: ${{ secrets.NOTIFY_SMTP_HOST }}
           server_port: ${{ secrets.NOTIFY_SMTP_PORT }}
@@ -205,7 +204,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Create pending PR status
         if: github.event.inputs.pr != ''
@@ -325,8 +324,7 @@ jobs:
 
       - name: Send e-mail on failed run
         if: failure() && contains(fromJSON('["schedule", "workflow_dispatch"]'), github.event_name)
-        # freeze to v17
-        uses: dawidd6/action-send-mail@03a02a49409134de07636216fb379a026c52991e
+        uses: dawidd6/action-send-mail@67ce3558d613188179559c61d3565140cf389968 # v22
         with:
           server_address: ${{ secrets.NOTIFY_SMTP_HOST }}
           server_port: ${{ secrets.NOTIFY_SMTP_PORT }}
@@ -347,7 +345,7 @@ jobs:
     needs: build-package
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Create pending PR status
         if: github.event.inputs.pr != ''
@@ -404,7 +402,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Create pending PR status
         if: github.event.inputs.pr != ''
@@ -437,7 +435,7 @@ jobs:
           git config --global user.name "GitHub Almighty"
 
       - name: Set up Python 3.10
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.10'
 
@@ -462,7 +460,7 @@ jobs:
 
       # needed for ssh certs under ubuntu and tox.ini everywhere
       - name: Checkout datalad
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: datalad/datalad
           path: datalad
