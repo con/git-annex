@@ -6,6 +6,7 @@ git-annex (10.20261027) UNRELEASED; urgency=medium
   * git-annex.cabal: Switch from magic to libmagic.
   * Fix mimetype and mimencoding detection of non-ascii filenames 
     in non-unicode locales.
+  * Botan is enabled by default; removed build flag.
 
  -- Joey Hess <id@joeyh.name>  Mon, 26 Oct 2026 18:34:32 -0400
 

@@ -11,7 +11,6 @@ module Utility.Hash (module X, props_hashes_stable) where
 
 import Utility.Hash.Types as X
 import Utility.Hash.Incremental as X
-#ifdef WITH_BOTAN
 import Utility.Hash.Botan as X
 -- Fall back to crypton for hashes not in botan.
 import Utility.Hash.Crypton as X
@@ -30,9 +29,6 @@ import Utility.Hash.Crypton as X
 	, blake2bp_512
 	, blake2bp_512_hasher
 	)
-#else
-import Utility.Hash.Crypton as X
-#endif
 #ifdef WITH_BLAKE3
 import Utility.Hash.Blake3 as X
 #endif

@@ -41,7 +41,12 @@ and avoids build failures due to fast-changing haskell libraries.
 First, [install stack](https://docs.haskellstack.org/en/stable/install_and_upgrade/)  
 On Debian:
 
-	sudo apt-get install haskell-stack zlib1g-dev
+	sudo apt-get install haskell-stack
+
+The [botan3](https://botan.randombit.net/) 
+library also needs to be installed. On Debian:
+
+	sudo apt-get install libbotan-3-dev
 
 Get the git-annex source code, and inside the source tree run:
 
@@ -81,7 +86,12 @@ Be warned that this involves building a lot of Haskell libraries from
 source, and so it has a lot of moving parts, and it's not uncommon for it
 to be broken from time to time.
 
-Get the git-annex source code, and inside the source tree, run:
+As a prerequisite, the [botan3](https://botan.randombit.net/) 
+library needs to be installed. On Debian:
+
+	sudo apt-get install libbotan-3-dev
+
+Then get the git-annex source code, and inside the source tree, run:
 
 	cabal install -j -f"-assistant -webapp -pairing -dbus -magicmime" --only-dependencies
 	cabal configure -f"-assistant -webapp -pairing -dbus -magicmime"
@@ -101,7 +111,7 @@ into other parts of your HOME directory, run:
 
 To build with all features enabled, including the assistant and webapp,
 you will need to install several C libraries and their headers,
-including libmagic, and zlib. How to do that for your OS is beyond
+including botan3 and libmagic. How to do that for your OS is beyond
 the scope of this page. 
 
 Once the C libraries are installed, run inside the source tree:
