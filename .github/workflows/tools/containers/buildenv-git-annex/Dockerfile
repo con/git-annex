@@ -75,3 +75,21 @@ RUN set -ex; \
     runghc Setup.hs install; \
     ghc-pkg field file-io version; \
     cd /; rm -rf /tmp/file-io*
+
+# git-annex's MagicMime build flag (automatic as well) needs the Haskell
+# libmagic >= 1.3 binding since upstream c51f910bc4 (2026-10-27), which Debian
+# does not package yet.  Drop once Debian provides libghc-libmagic-dev (>= 1.3).
+ARG LIBMAGIC_VERSION=1.3.1
+ARG LIBMAGIC_SHA256=da224c70e95758fb38fab3956724fcff54d838001fd463493e52cd52bc2228e0
+RUN set -ex; \
+    cd /tmp; \
+    curl -fsSL -o libmagic.tar.gz "https://hackage.haskell.org/package/libmagic-${LIBMAGIC_VERSION}/libmagic-${LIBMAGIC_VERSION}.tar.gz"; \
+    echo "${LIBMAGIC_SHA256}  libmagic.tar.gz" | sha256sum -c -; \
+    tar xzf libmagic.tar.gz; \
+    cd "libmagic-${LIBMAGIC_VERSION}"; \
+    printf 'import Distribution.Simple\nmain = defaultMain\n' > Setup.hs; \
+    runghc Setup.hs configure --global --prefix=/usr/local; \
+    runghc Setup.hs build; \
+    runghc Setup.hs install; \
+    ghc-pkg field libmagic version; \
+    cd /; rm -rf /tmp/libmagic*
