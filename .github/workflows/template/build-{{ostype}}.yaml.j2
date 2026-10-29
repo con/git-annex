@@ -147,21 +147,34 @@ jobs:
       - name: Adjust changelog generation script to use original branch
         run: sed -i -e "s,HEAD,$BUILD_COMMIT,g" debian/create-standalone-changelog
 
-      # A PR is built unsigned when the signing key is not available to it:
-      # Actions secrets are withheld not only from fork PRs but also from
-      # Dependabot PRs, whose branches live in this repository.  Without the
-      # key, ~/.gnupg must not be created either, or dpkg-buildpackage would
-      # try to sign the source package.  Other events always sign, so that a
-      # missing key fails them.
-      - name: Check for the signing key
+      # Fork and Dependabot PRs get no secrets: build them unsigned, without ~/.gnupg
+      # (dpkg-buildpackage signs if it exists).  Builds outside PRs in a non-fork must sign.
+      - name: Decide whether to sign
         id: signing
-        run: echo "sign=${{ github.event_name != 'pull_request' || secrets.datalad_builder_gpgkey != '' }}" >> "$GITHUB_OUTPUT"
+        run: |
+          if [ "$HAVE_KEY" = true ]; then
+            sign=true
+          elif [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            sign=false
+          else
+            fork="$(gh api "repos/$GITHUB_REPOSITORY" --jq .fork)"
+            if [ "$fork" != true ]; then
+              echo "::error::No signing key (secrets.datalad_builder_gpgkey), but $GITHUB_EVENT_NAME builds of $GITHUB_REPOSITORY must be signed"
+              exit 1
+            fi
+            sign=false
+          fi
+          echo "sign=$sign" >> "$GITHUB_OUTPUT"
+        env:
+          HAVE_KEY: ${{ secrets.datalad_builder_gpgkey != '' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Import GPG keys
         if: steps.signing.outputs.sign == 'true'
         run: |
           # private key for signing - comes from secrets
           echo '${{ secrets.datalad_builder_gpgkey }}' | gpg --import
+          gpg --list-secret-keys "$DEB_SIGN_KEYID"
           # public key for verification
           gpg --import .github/workflows/tools/datalad-builder-key.asc
 
@@ -194,6 +207,17 @@ jobs:
       - name: Check that all tests were run and passed
         run: grep -E '^All [[:digit:]]{3} tests passed' "${bbuild_log}"
         if: "!contains(env.DEB_BUILD_OPTIONS, 'nocheck')"
+
+      - name: Check that the packages are signed
+        if: steps.signing.outputs.sign == 'true'
+        run: |
+          arch="$(dpkg --print-architecture)"
+          for f in git-annex_*.dsc git-annex_*_{source,"$arch"}.{buildinfo,changes}; do
+            if ! gpg --status-fd 1 --verify "$f" | grep "^\[GNUPG:\] VALIDSIG .* $DEB_SIGN_KEYID\$"; then
+              echo "::error::$f is not signed by $DEB_SIGN_KEYID"
+              exit 1
+            fi
+          done
 
     {% elif ostype.startswith("macos") %}
       - name: Configure build
