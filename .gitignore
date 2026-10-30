@@ -33,7 +33,6 @@ cabal-dev
 cabal.sandbox.config
 .stack-work
 stack.yaml.lock
-stack-botan.yaml.lock
 stack-NoLLMDependencies.yaml.lock
 # Project-local emacs configuration
 .dir-locals.el
