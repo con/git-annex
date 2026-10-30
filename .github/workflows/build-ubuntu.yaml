@@ -103,11 +103,34 @@ jobs:
       - name: Adjust changelog generation script to use original branch
         run: sed -i -e "s,HEAD,$BUILD_COMMIT,g" debian/create-standalone-changelog
 
+      # Fork and Dependabot PRs get no secrets: build them unsigned, without ~/.gnupg
+      # (dpkg-buildpackage signs if it exists).  Builds outside PRs in a non-fork must sign.
+      - name: Decide whether to sign
+        id: signing
+        run: |
+          if [ "$HAVE_KEY" = true ]; then
+            sign=true
+          elif [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            sign=false
+          else
+            fork="$(gh api "repos/$GITHUB_REPOSITORY" --jq .fork)"
+            if [ "$fork" != true ]; then
+              echo "::error::No signing key (secrets.datalad_builder_gpgkey), but $GITHUB_EVENT_NAME builds of $GITHUB_REPOSITORY must be signed"
+              exit 1
+            fi
+            sign=false
+          fi
+          echo "sign=$sign" >> "$GITHUB_OUTPUT"
+        env:
+          HAVE_KEY: ${{ secrets.datalad_builder_gpgkey != '' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Import GPG keys
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
+        if: steps.signing.outputs.sign == 'true'
         run: |
           # private key for signing - comes from secrets
           echo '${{ secrets.datalad_builder_gpgkey }}' | gpg --import
+          gpg --list-secret-keys "$DEB_SIGN_KEYID"
           # public key for verification
           gpg --import .github/workflows/tools/datalad-builder-key.asc
 
@@ -122,7 +145,7 @@ jobs:
 
       - name: Build binary package from the source package
         run: |
-          sign="${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}"
+          sign="${{ steps.signing.outputs.sign }}"
           if [ "x$sign" = xtrue ]
           then opts=
           else opts='-uc -us'
@@ -140,6 +163,17 @@ jobs:
       - name: Check that all tests were run and passed
         run: grep -E '^All [[:digit:]]{3} tests passed' "${bbuild_log}"
         if: "!contains(env.DEB_BUILD_OPTIONS, 'nocheck')"
+
+      - name: Check that the packages are signed
+        if: steps.signing.outputs.sign == 'true'
+        run: |
+          arch="$(dpkg --print-architecture)"
+          for f in git-annex_*.dsc git-annex_*_{source,"$arch"}.{buildinfo,changes}; do
+            if ! gpg --status-fd 1 --verify "$f" | grep "^\[GNUPG:\] VALIDSIG .* $DEB_SIGN_KEYID\$"; then
+              echo "::error::$f is not signed by $DEB_SIGN_KEYID"
+              exit 1
+            fi
+          done
 
       - name: Upload packages
         uses: actions/upload-artifact@v7
