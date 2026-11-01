@@ -1,0 +1,8 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 6"""
+ date="2026-11-01T16:14:18Z"
+ content="""
+The new [[git-annex-transfers]] is a more targeted take on `git-annex
+activity`.
+"""]]
