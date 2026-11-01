@@ -1,0 +1,68 @@
+# NAME
+
+git-annex transfers - display transfers
+
+# SYNOPSIS
+
+git annex transfers
+
+# DESCRIPTION
+
+Lists files that are being sent to remotes or recieved from remotes
+by any other git-annex process running in this repository.
+
+The default output from this command is one line per file, like this:
+
+    uploading foo (to darkstar) 50%
+    downloading bar (from darkstar) 1%
+
+# OPTIONS
+
+* `--live`
+
+  Keep running and display transfers as they happen, with new
+  lines being added when new transfers start, and each line being
+  updated as the transfer proceeds.
+
+  When a transfer ends, its line is updated to indicate that,
+  by changing to start with "uploaded" or "downloaded". (This does
+  not necessarily mean that the transfer succeeded.)
+
+* `--stream`
+
+  Like `--live` but displays a new line each time there is an update
+  in the status of a transfer. This makes it parseable.
+
+* `--json`
+
+  Enable JSON output. This is intended to be parsed by programs that use
+  git-annex. Each line of output is a JSON object.
+
+* `--localfilenames`
+
+  Usually, the filename displayed by this command is the name provided
+  by the initiator of the transfer. So it may not correspond with the name
+  of the file in the currently checked out branch. For example, when 
+  git-annex-shell is sending a file from a server to a client, the client
+  could have a branch checked out that uses a different name for the file.
+  Some filenames also need to be mangled for security reasons, or reasons
+  of backwards compatability with older versions of git-annex.
+
+  With this option, rather than displaying the filename provided with the
+  transfer, display the name of a file in the locally checked out branch
+  that corresponds to the git-annex key. If there is no such
+  file, the key will be shown instead.
+
+* Also the [[git-annex-common-options]](1) can be used.
+
+# SEE ALSO
+
+[[git-annex]](1)
+
+[[git-annex-inprogress]](1)
+
+# AUTHOR
+
+Joey Hess <id@joeyh.name>
+
+Warning: Automatically converted into a man page by mdwn2man. Edit with care.
