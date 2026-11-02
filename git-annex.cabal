@@ -805,6 +805,7 @@ Executable git-annex
     Command.TestRemote
     Command.Transferrer
     Command.TransferKey
+    Command.Transfers
     Command.Trust
     Command.Unannex
     Command.Undo

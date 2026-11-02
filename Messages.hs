@@ -23,6 +23,7 @@ module Messages (
 	showOutput,
 	showLongNote,
 	showInfo,
+	showEnd,
 	showEndOk,
 	showEndFail,
 	showEndResult,
@@ -174,6 +175,9 @@ formatLongNote s = "\n" <> indent s <> "\n"
 -- to console, but json object containing the info is emitted immediately.
 showInfo :: StringContainingQuotedPath -> Annex ()
 showInfo s = outputMessage' outputJSON (JSON.info (decodeBS (noquote s))) formatLongNote s
+
+showEnd :: StringContainingQuotedPath -> Annex ()
+showEnd s = outputMessage JSON.end' id (s <> "\n")
 
 showEndOk :: Annex ()
 showEndOk = showEndResult True

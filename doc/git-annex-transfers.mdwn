@@ -8,40 +8,39 @@ git annex transfers
 
 # DESCRIPTION
 
-Lists files that are being sent to remotes or recieved from remotes
-by any other git-annex process running in this repository.
+Displays a live view of files that are being transferred from and to
+remotes.
 
-The default output from this command is one line per file, like this:
+For files that are being received, this often includes a progress meter.
+No progress information is available for files that are being sent.
 
-    uploading foo (to darkstar) 50%
-    downloading bar (from darkstar) 1%
+For example:
+
+    receive foo (from darkstar)
+    39%   569.1 MiB         2 MiB/s 6m24s
+    send bar (to darkstar)
+
+Once a transfer ends, "done" is displayed at the end of its line.
+That does not necessarily mean that the transfer finished successfully.
+
+The display of transfers continues until interrupted by eg pressing
+control-c.
 
 # OPTIONS
-
-* `--live`
-
-  Keep running and display transfers as they happen, with new
-  lines being added when new transfers start, and each line being
-  updated as the transfer proceeds.
-
-  When a transfer ends, its line is updated to indicate that,
-  by changing to start with "uploaded" or "downloaded". (This does
-  not necessarily mean that the transfer succeeded.)
-
-* `--stream`
-
-  Like `--live` but displays a new line each time there is an update
-  in the status of a transfer. This makes it parseable.
 
 * `--json`
 
   Enable JSON output. This is intended to be parsed by programs that use
   git-annex. Each line of output is a JSON object.
 
+* `--json-progress`
+
+  Include progress objects in JSON output.
+
 * `--localfilenames`
 
   Usually, the filename displayed by this command is the name provided
-  by the initiator of the transfer. So it may not correspond with the name
+  by the initiator of the transfer. So it may not correspond to the name
   of the file in the currently checked out branch. For example, when 
   git-annex-shell is sending a file from a server to a client, the client
   could have a branch checked out that uses a different name for the file.

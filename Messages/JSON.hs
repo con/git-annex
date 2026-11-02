@@ -16,6 +16,7 @@ module Messages.JSON (
 	start,
 	startActionItem,
 	end,
+	end',
 	finalize,
 	addErrorMessage,
 	note,
@@ -105,6 +106,10 @@ startActionItem command ai si _ = case j of
 end :: Bool -> JSONBuilder
 end b (Just (o, _)) = Just (HM.insert "success" (toJSON' b) o, True)
 end _ Nothing = Nothing
+
+end' :: JSONBuilder
+end' (Just (o, _)) = Just (o, True)
+end' Nothing = Nothing
 
 -- Always include error-messages field, even if empty,
 -- to make the json be self-documenting.

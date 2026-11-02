@@ -175,7 +175,7 @@ metered' st setclear othermeterupdate msize bwlimit showoutput a = go st
 
 	minratelimit = min consoleratelimit jsonratelimit
 		
-{- Poll file size to display meter. -}
+{- Poll file size to display meter while running an action. -}
 meteredFile
 	:: MeterSize sizer
 	=> OsPath
