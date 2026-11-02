@@ -14,19 +14,22 @@ import Types.Transfer
 import Logs.Transfer
 import Remote
 import Messages.Progress
+import Messages.Concurrent
 import Utility.ThreadScheduler
+import Annex.Concurrent
 
 import qualified Data.Map as M
 import Control.Concurrent.STM
+import Control.Concurrent.Async
 
 cmd :: Command
-cmd = noCommit $ withAnnexOptions [jsonOptions, jsonProgressOption, jobsOption] $
+cmd = noCommit $ withAnnexOptions [jsonOptions, jsonProgressOption] $
 	command "transfers" SectionQuery
 		"display transfers"
 		paramNothing (withParams (withNothing seek))
 
 seek :: CommandSeek
-seek = startConcurrency commandStages $ do
+seek = withConcurrentOutput $ do
 	rs <- remoteList
 	let remotemap = M.fromList $ zip (map uuid rs) rs
 	go remotemap M.empty
@@ -37,14 +40,19 @@ seek = startConcurrency commandStages $ do
 			case M.lookup t transfermap of
 				Nothing -> do
 					endvar <- liftIO newEmptyTMVarIO
-					commandAction $
-						start t ti endvar remotemap
-					return (t, endvar)
-				Just endvar -> return (t, endvar)
+					a <- forkState $ 
+						withMessageState $ \s ->
+							inOwnConsoleRegion s $
+								includeCommandAction $
+									start t ti endvar remotemap
+					tid <- liftIO $ async a
+					return (t, (endvar, tid))
+				Just v -> return (t, v)
 		let newmap = M.fromList new
-		forM_ (M.toList transfermap) $ \(t, endvar) -> 
-			unless (M.member t newmap) $
+		forM_ (M.toList transfermap) $ \(t, (endvar, tid)) -> 
+			unless (M.member t newmap) $ do
 				liftIO $ atomically $ putTMVar endvar ()
+				void $ join $ liftIO $ wait tid
 		liftIO $ threadDelaySeconds (SecondsDelay 1)
 		go remotemap newmap
 
