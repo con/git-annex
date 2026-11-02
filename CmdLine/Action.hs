@@ -17,7 +17,6 @@ import Types.Command
 import Types.Concurrency
 import Annex.Content
 import Messages.Concurrent
-import Types.Messages
 import Types.WorkerPool
 import Types.ActionItem
 import Remote.List
@@ -27,7 +26,6 @@ import Control.Concurrent.Async
 import Control.Concurrent.STM
 import GHC.Conc
 import qualified Data.Map.Strict as M
-import qualified System.Console.Regions as Regions
 
 {- Runs a command, starting with the check stage, and then
  - the seek stage. Finishes by running the continuation.
@@ -248,22 +246,14 @@ startConcurrency usedstages a = do
   where
 	goconcurrent n = do
 		raiseCapabilitiesForJobs n
-		withMessageState $ \s -> 
-			setupConcurrentOutput s (goconcurrent' n)
-	goconcurrent' n b = bracket_ (setup n b) cleanup a
+		withConcurrentOutput (goconcurrent' n)
+	goconcurrent' n = bracket_ (setup n) cleanup a
 
 	goconcurrentpercpu = goconcurrent =<< liftIO getNumProcessors
 
-	setup n b = do
-		setconcurrentoutputenabled b
-		initworkerpool n
+	setup n = initworkerpool n
 
-	cleanup = do
-		finishCommandActions
-		setconcurrentoutputenabled False
-
-	setconcurrentoutputenabled b = Annex.changeState $ \s ->
-		s { Annex.output = (Annex.output s) { concurrentOutputEnabled = b } }
+	cleanup = finishCommandActions
 	
 	initworkerpool n = do
 		tv <- liftIO newEmptyTMVarIO

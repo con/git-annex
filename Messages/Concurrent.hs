@@ -123,14 +123,23 @@ concurrentOutputSupported = do
 concurrentOutputSupported = return True -- Windows is always unicode
 #endif
 
-setupConcurrentOutput :: MessageState -> (Bool -> Annex a) -> Annex a
-setupConcurrentOutput s a =
-	case outputType s of
+withConcurrentOutput :: Annex a -> Annex a
+withConcurrentOutput a =
+	Annex.getState Annex.output >>= \s -> case outputType s of
 		NormalOutput -> ifM (liftIO concurrentOutputSupported)
-			( Regions.displayConsoleRegions $ a True
-			, a False
+			( Regions.displayConsoleRegions $ go True
+			, go False
 			)
-		_ -> a False
+		_ -> go False
+  where
+	go b = bracket_ (setup b) cleanup a
+
+	setup b = setconcurrentoutputenabled b
+
+	cleanup = setconcurrentoutputenabled False
+
+	setconcurrentoutputenabled b = Annex.changeState $ \s ->
+                s { Annex.output = (Annex.output s) { concurrentOutputEnabled = b } }
 
 {- Hide any currently displayed console regions while running the action,
  - so that the action can use the console itself. -}
