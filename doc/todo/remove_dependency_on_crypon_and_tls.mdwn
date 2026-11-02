@@ -27,6 +27,8 @@ Here is a plan:
   flag, but it would be easier if botan bundled the C library in the
   haskell package. Which they have considered doing.  
   The `botan-default` branch makes the switch.
+  (Waiting on a fix for https://github.com/joeyh/git-annex-wheel/
+  test failure.)
 * botan lacks skein and blake2, so would need to get those hashes another
   way
 * Switch from http-client-tls to http-client-openssl.
