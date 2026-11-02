@@ -1,0 +1,2 @@
+The `git-annex-transfers` branch has a new command, not quite ready for
+merging. --[[Joey]]
