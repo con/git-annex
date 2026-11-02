@@ -8,8 +8,7 @@ git annex transfers
 
 # DESCRIPTION
 
-Displays a live view of files that are being transferred from and to
-remotes.
+A live view of files that are being transferred from and to remotes.
 
 For files that are being received, this often includes a progress meter.
 No progress information is available for files that are being sent.
