@@ -248,13 +248,8 @@ startConcurrency usedstages a = do
   where
 	goconcurrent n = do
 		raiseCapabilitiesForJobs n
-		withMessageState $ \s -> case outputType s of
-			NormalOutput -> ifM (liftIO concurrentOutputSupported)
-				( Regions.displayConsoleRegions $
-					goconcurrent' n True
-				, goconcurrent' n False
-				)
-			_ -> goconcurrent' n False
+		withMessageState $ \s -> 
+			setupConcurrentOutput s (goconcurrent' n)
 	goconcurrent' n b = bracket_ (setup n b) cleanup a
 
 	goconcurrentpercpu = goconcurrent =<< liftIO getNumProcessors
