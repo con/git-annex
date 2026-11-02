@@ -1,0 +1,3 @@
+Currently it uses a 1 second sleep loop and re-parses every transfer log
+each time through. Could inotify on the transfer log directory, which would
+use less CPU and notice changes faster. --[[Joey]]
