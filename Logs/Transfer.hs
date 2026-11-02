@@ -269,7 +269,7 @@ updateTransferInfoFile info tfile =
  - On unix, the transferPid is not included; instead it is obtained
  - by looking at the process that locks the file.
  -
- - On windows, the transferPid is included, as a second line.
+ - On windows, the transferPid is included, as another line.
  -}
 writeTransferInfo :: TransferInfo -> String
 writeTransferInfo info = unlines

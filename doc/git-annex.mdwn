@@ -575,6 +575,12 @@ content from the key-value store.
 
   See [[git-annex-inprogress]](1) for details.
 
+* `transfers
+
+  Display transfers.
+
+  See [[git-annex-transfers]](1) for details.
+
 * `findkeys`
 
   Similar to `git-annex find`, but operating on keys.

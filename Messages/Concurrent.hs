@@ -1,6 +1,6 @@
 {- git-annex output messages, including concurrent output to display regions
  -
- - Copyright 2010-2017 Joey Hess <id@joeyh.name>
+ - Copyright 2010-2026 Joey Hess <id@joeyh.name>
  -
  - Licensed under the GNU AGPL version 3 or higher.
  -}
@@ -122,6 +122,24 @@ concurrentOutputSupported = do
 #else
 concurrentOutputSupported = return True -- Windows is always unicode
 #endif
+
+withConcurrentOutput :: Annex a -> Annex a
+withConcurrentOutput a =
+	Annex.getState Annex.output >>= \s -> case outputType s of
+		NormalOutput -> ifM (liftIO concurrentOutputSupported)
+			( Regions.displayConsoleRegions $ go True
+			, go False
+			)
+		_ -> go False
+  where
+	go b = bracket_ (setup b) cleanup a
+
+	setup b = setconcurrentoutputenabled b
+
+	cleanup = setconcurrentoutputenabled False
+
+	setconcurrentoutputenabled b = Annex.changeState $ \s ->
+                s { Annex.output = (Annex.output s) { concurrentOutputEnabled = b } }
 
 {- Hide any currently displayed console regions while running the action,
  - so that the action can use the console itself. -}
