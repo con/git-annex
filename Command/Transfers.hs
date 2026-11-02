@@ -16,6 +16,7 @@ import Remote
 import Messages.Progress
 import Messages.Concurrent
 import Utility.ThreadScheduler
+import Utility.Metered
 import Annex.Concurrent
 import Database.Keys
 import Git.FilePath
@@ -88,11 +89,12 @@ start o t ti endvar remotemap = do
 			Just r -> showNote $ UnquotedString $
 				fromto ++ " " ++ name r
 			Nothing -> noop
-		case transferDirection t of
-			Download -> do
-				obj <- fromRepo $ gitAnnexTmpObjectLocation k
-				meteredFile obj Nothing k $ const waitend
-			Upload -> waitend
+
+		(tfile, _, _) <- fromRepo $ transferFileAndLockFile t
+		metered Nothing k Nothing $ \_ p ->
+			watchSizeWith (getprogress tfile) p $
+				const waitend
+
 		showEnd "done"
 		next $ return True
   where
@@ -106,4 +108,11 @@ start o t ti endvar remotemap = do
 		Download -> "from"
 	waitend = 
 		liftIO $ atomically $ takeTMVar endvar
+	
 	relaf f = AssociatedFile . Just <$> liftIO (relPathCwdToFile f)
+
+	getprogress tfile = readTransferInfoFile Nothing tfile
+		>>= return . \case
+			Just ti -> maybe zeroBytesProcessed toBytesProcessed
+				(bytesComplete ti)
+			Nothing -> zeroBytesProcessed
