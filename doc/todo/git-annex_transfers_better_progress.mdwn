@@ -9,4 +9,11 @@ I think that both of these could be handled better by making progress updates
 for send/receive also update the transfer info file with the current byte
 count. This would mean writing some data to disk, but well, during a
 transfer a lot of data is already going to/from disk, so updating the file
-once per second would probably be unnoticable. --[[Joey]]
+once per second would probably be unnoticable.
+
+Seems that readTransferInfo never populates the bytesComplete field even if
+it got written. And while mkProgressUpdater should update the file,
+it seems it's not?
+
+I have some work toward this in the `transferprogress` branch.
+--[[Joey]]
