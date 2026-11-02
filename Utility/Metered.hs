@@ -1,6 +1,6 @@
 {- Metered IO and actions
  -
- - Copyright 2012-2024 Joey Hess <id@joeyh.name>
+ - Copyright 2012-2026 Joey Hess <id@joeyh.name>
  -
  - License: BSD-2-clause
  -}
@@ -26,6 +26,7 @@ module Utility.Metered (
 	hGetContentsMetered,
 	hGetMetered,
 	defaultChunkSize,
+	watchSizeWith,
 	watchFileSize,
 	OutputHandler(..),
 	ProgressParser,
@@ -213,6 +214,41 @@ defaultChunkSize = 32 * k - chunkOverhead
 	k = 1024
 	chunkOverhead = 2 * sizeOf (1 :: Int) -- GHC specific
 
+watchSizeWith
+	:: (MonadIO m, MonadMask m)
+	=> IO BytesProcessed
+	-> MeterUpdate
+	-> (MeterUpdate -> m a)
+	-> m a
+watchSizeWith getsize p a = do
+	sizevar <- liftIO $ newMVar zeroBytesProcessed
+	bracket 
+		(liftIO $ forkIO $ watcher (meterupdate sizevar True) =<< getsz)
+		(liftIO . void . tryIO . killThread)
+		(const (a (meterupdate sizevar False)))
+  where
+	watcher p' oldsz = do
+		threadDelay 500000 -- 0.5 seconds
+		sz <- getsz
+		when (sz > oldsz) $
+			p' sz
+		watcher p' sz
+	
+	getsz = catchDefaultIO zeroBytesProcessed getsize
+
+	meterupdate sizevar preventbacktracking n
+		| preventbacktracking = do
+			old <- takeMVar sizevar
+			if old > n
+				then putMVar sizevar old
+				else do
+					putMVar sizevar n
+					p n
+		| otherwise = do
+			void $ takeMVar sizevar
+			putMVar sizevar n
+			p n
+
 {- Runs an action, watching a file as it grows and updating the meter.
  -
  - The file may already exist, and the action could throw the original file
@@ -232,34 +268,7 @@ watchFileSize
 	-> MeterUpdate
 	-> (MeterUpdate -> m a)
 	-> m a
-watchFileSize f p a = do
-	sizevar <- liftIO $ newMVar zeroBytesProcessed
-	bracket 
-		(liftIO $ forkIO $ watcher (meterupdate sizevar True) =<< getsz)
-		(liftIO . void . tryIO . killThread)
-		(const (a (meterupdate sizevar False)))
-  where
-	watcher p' oldsz = do
-		threadDelay 500000 -- 0.5 seconds
-		sz <- getsz
-		when (sz > oldsz) $
-			p' sz
-		watcher p' sz
-	getsz = catchDefaultIO zeroBytesProcessed $
-		toBytesProcessed <$> getFileSize f
-
-	meterupdate sizevar preventbacktracking n
-		| preventbacktracking = do
-			old <- takeMVar sizevar
-			if old > n
-				then putMVar sizevar old
-				else do
-					putMVar sizevar n
-					p n
-		| otherwise = do
-			void $ takeMVar sizevar
-			putMVar sizevar n
-			p n
+watchFileSize f = watchSizeWith (toBytesProcessed <$> getFileSize f)
 
 data OutputHandler = OutputHandler
 	{ quietMode :: Bool
