@@ -3,7 +3,7 @@
 [[!img /assistant/osx-app.png align=right link=/assistant]]
 For easy installation, use the prebuilt app bundle.
 
-* 10.15 Catalina: [git-annex.dmg](https://downloads.kitenet.net/git-annex/OSX/current/10.15_Catalina/git-annex.dmg)
+* [git-annex.dmg](https://downloads.kitenet.net/git-annex/OSX/current/git-annex.dmg)
 
 To run the [[git-annex_assistant|/assistant]], just
 install the app, look for the icon, and start it up. 
@@ -20,7 +20,7 @@ several more. Handy if you don't otherwise have git installed.
 
 A daily autobuild is also available, run by [[Joey]]:
 
-* [git-annex.dmg](https://downloads.kitenet.net/git-annex/autobuild/x86_64-apple-catalina/git-annex.dmg)
+* [git-annex.dmg](https://downloads.kitenet.net/git-annex/autobuild/OSX/git-annex.dmg)
   ([build logs](https://github.com/joeyh/gitannexbuilder/actions/workflows/build-macos.yaml?query=Build+git-annex+on+macOS))
 
 ## download security
