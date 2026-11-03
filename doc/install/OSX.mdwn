@@ -34,8 +34,7 @@ git-annex is [[available in Homebrew|Homebrew]].
 
 ## using MacPorts
 
-git-annex is not available in MacPorts, but can be built from source using
-MacPorts tools. See [[MacPorts]].
+git-annex is [[available in MacPorts|MacPorts]].
 
 ## building it yourself
 

@@ -1,7 +1,12 @@
-This is not a recommended way to install git-annex. Use [[HomeBrew]] or the
-prebuilt app bundle instead.
+[MacPorts has a build of git-annex](https://ports.macports.org/port/git-annex/details/)
 
-But if you really want to use MacPorts:
+## buiding git-annex from sources
+
+This is the old recipe for building git-annex from source, using
+packages from MacPorts. Useful if you want a newer version than the version
+in MacPorts.
+
+(This may be out of date.)
 
 Install the Haskell Platform from [[http://hackage.haskell.org/platform/mac.html]].
 The version provided by Macports is too old to work with current versions of git-annex.
