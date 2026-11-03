@@ -106,6 +106,11 @@ metered'
 metered' st setclear othermeterupdate msize bwlimit showoutput a = go st
   where
 	go (MessageState { outputType = QuietOutput }) = nometer
+	go (MessageState { outputType = NormalOutput, disableProgressMeters = True }) = do
+		meter <- liftIO $ mkMeter msize dontDisplayMeter
+		m <- liftIO $ rateLimitMeterUpdate consoleratelimit meter $
+			updateMeter meter
+		a meter =<< mkmeterupdate m
 	go (MessageState { outputType = NormalOutput, concurrentOutputEnabled = False }) = do
 		showoutput
 		meter <- liftIO $ mkMeter msize $ 

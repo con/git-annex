@@ -43,6 +43,7 @@ module Utility.Metered (
 	mkMeter,
 	setMeterTotalSize,
 	updateMeter,
+	dontDisplayMeter,
 	displayMeterHandle,
 	clearMeterHandle,
 	bandwidthMeter,
@@ -495,6 +496,10 @@ updateMeter (Meter totalsizev sv bv displaymeter) new = do
 	when (meterBytesProcessed oldms /= new) $ do
 		totalsize <- readMVar totalsizev
 		displaymeter bv totalsize oldms curms
+
+-- | Don't display a meter.
+dontDisplayMeter :: DisplayMeter
+dontDisplayMeter _ _ _ _ = return ()
 
 -- | Display meter to a Handle.
 displayMeterHandle :: Handle -> RenderMeter -> DisplayMeter

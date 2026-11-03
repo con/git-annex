@@ -10,6 +10,8 @@ git-annex (10.20261027) UNRELEASED; urgency=medium
     contained unicode multibyte space characters.
   * Fix buggy handling of a submodule in a linked git worktree.
   * Added transfers command, displays a live view of transfers.
+  * Avoid display issues with multiple progress meters when not in a
+    unicode locale.
 
  -- Joey Hess <id@joeyh.name>  Mon, 26 Oct 2026 18:34:32 -0400
 

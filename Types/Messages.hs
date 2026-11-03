@@ -42,6 +42,7 @@ data SideActionBlock = NoBlock | StartBlock | InBlock
 data MessageState = MessageState
 	{ outputType :: OutputType
 	, concurrentOutputEnabled :: Bool
+	, disableProgressMeters :: Bool
 	, sideActionBlock :: SideActionBlock
 	, consoleRegion :: Maybe ConsoleRegion
 	, consoleRegionErrFlag :: Bool
@@ -56,6 +57,7 @@ newMessageState = do
 	return $ MessageState
 		{ outputType = NormalOutput
 		, concurrentOutputEnabled = False
+		, disableProgressMeters = False
 		, sideActionBlock = NoBlock
 		, consoleRegion = Nothing
 		, consoleRegionErrFlag = False

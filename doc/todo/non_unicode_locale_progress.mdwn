@@ -1,0 +1,11 @@
+When in a non unicode locale, concurrent-output cannot be used. When -J is
+used, and there are progress meters displayed, this leads to the meters
+being written at whatever the current cursor position happens to be,
+which messes up the display.
+
+It might be best to fix this by just not displaying progress meters when in
+a non-unicode locale and when -J is used. That was the approach taken
+in [[!commit 0f18636c8a85526259e9d75f6164c66edbca676b]].
+--[[Joey]]
+
+> [done]]

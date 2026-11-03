@@ -138,8 +138,12 @@ withConcurrentOutput a =
 
 	cleanup = setconcurrentoutputenabled False
 
-	setconcurrentoutputenabled b = Annex.changeState $ \s ->
-                s { Annex.output = (Annex.output s) { concurrentOutputEnabled = b } }
+	setconcurrentoutputenabled b = Annex.changeState $ \s -> s
+		{ Annex.output = (Annex.output s)
+			{ concurrentOutputEnabled = b
+			, disableProgressMeters = not b
+			}
+		}
 
 {- Hide any currently displayed console regions while running the action,
  - so that the action can use the console itself. -}
