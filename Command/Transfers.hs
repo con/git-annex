@@ -113,6 +113,6 @@ start o t ti endvar remotemap = do
 
 	getprogress tfile = readTransferInfoFile Nothing tfile
 		>>= return . \case
-			Just ti -> maybe zeroBytesProcessed toBytesProcessed
-				(bytesComplete ti)
+			Just ti' -> maybe zeroBytesProcessed toBytesProcessed
+				(bytesComplete ti')
 			Nothing -> zeroBytesProcessed
