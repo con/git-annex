@@ -1,0 +1,13 @@
+When not in a unicode locale and -J is enabled, concurrent-output is not
+used. This can lead to some display glitches. For example, with 
+`LANG=C git-annex copy --to foo -J2`, it will sometimes output
+
+    ok
+    ok
+
+And sometimes
+
+    (to foo...) (to foo...)
+
+The fix for this will probably be to prevent more than 1 job when
+in such a locale. --[[Joey]]
