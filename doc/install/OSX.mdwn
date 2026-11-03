@@ -21,7 +21,7 @@ several more. Handy if you don't otherwise have git installed.
 A daily autobuild is also available, run by [[Joey]]:
 
 * [git-annex.dmg](https://downloads.kitenet.net/git-annex/autobuild/OSX/git-annex.dmg)
-  ([build logs](https://github.com/joeyh/gitannexbuilder/actions/workflows/build-macos-intel.yaml)
+  ([build logs](https://github.com/joeyh/gitannexbuilder/actions/workflows/build-macos-intel.yaml))
 
 ## download security
 
