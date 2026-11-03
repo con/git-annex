@@ -10,9 +10,6 @@ git annex transfers
 
 A live view of files that are being transferred from and to remotes.
 
-For files that are being received, this often includes a progress meter.
-No progress information is available for files that are being sent.
-
 For example:
 
     receive foo (from darkstar)
