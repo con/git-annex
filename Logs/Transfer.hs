@@ -68,8 +68,8 @@ mkProgressUpdater t info tfile = do
 	return (liftIO . updater tvar loggedtvar, createtfile, tvar)
   where
 	updater tvar loggedtvar new = do
-		old <- atomically $ swapTVar tvar (Just new)
-		let oldbytes = maybe 0 fromBytesProcessed old
+		atomically $ writeTVar tvar (Just new)
+		oldbytes <- atomically $ readTVar loggedtvar
 		let newbytes = fromBytesProcessed new
 		when (newbytes - oldbytes >= mindelta) $ do
 			let info' = info { bytesComplete = Just newbytes }
