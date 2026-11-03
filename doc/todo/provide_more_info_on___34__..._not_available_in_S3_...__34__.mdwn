@@ -1,0 +1,143 @@
+I am running a simple script which does
+
+```
+git-annex import master --from s3-dandiarchive
+git merge --no-edit s3-dandiarchive/master
+```
+
+but some (?) cron runs end up e.g. with 
+
+```
+Subject: Cron <dandi@drogon> chronic flock -E 0 -e -n /home/dandi/.run/manifests-update.lock /mnt/backup/dandi/dandiset-manifests/code/update
+
+list s3-dandiarchive ok
+import s3-dandiarchive 001412/draft/assets.jsonld
+^M0%    1017 B            7 KiB/s 2h38m^M14%   8.59 MiB         43 MiB/s 1s   ^M39%   23.99 MiB        65 MiB/s 0s   ^M58%   35.54 MiB        58 MiB/s 0s   ^M78%   47.99 MiB        58 MiB/s 0s   ^M91%   55.99 MiB        37
+MiB/s 0s   ^M100%  61.6 MiB        107 MiB/s 0s   ^M                                     ^Mok
+import s3-dandiarchive 001412/draft/assets.yaml
+
+^M^Mfailed
+import s3-dandiarchive 001412/draft/collection.jsonld
+^M0%    1020 B           10 KiB/s 3m42s^M100%  2.26 MiB         82 MiB/s 0s   ^M                                     ^Mok
+import s3-dandiarchive 001412/draft/dandiset.jsonld
+^M55%   1023 B           19 KiB/s 0s^M100%  1.82 KiB          3 MiB/s 0s^M                                  ^Mok
+import s3-dandiarchive 001412/draft/dandiset.yaml
+^M56%   1 KiB            19 KiB/s 0s^M100%  1.78 KiB          5 MiB/s 0s^M                                  ^Mok
+
+(recording state in git...)
+  requested version of object is not available in S3 bucket
+  Failed to import some files from s3-dandiarchive. Re-run command to resume import.
+import: 1 failed
+```
+
+and then when I run "manually" -- all is good:
+
+```
+dandi@drogon:~$ flock -E 0 -e -n /home/dandi/.run/manifests-update.lock /mnt/backup/dandi/dandiset-manifests/code/update
+list s3-dandiarchive ok
+import s3-dandiarchive 001412/draft/assets.jsonld
+ok
+import s3-dandiarchive 001412/draft/assets.yaml
+ok
+import s3-dandiarchive 001412/draft/collection.jsonld
+ok
+import s3-dandiarchive 001412/draft/dandiset.jsonld
+ok
+import s3-dandiarchive 001412/draft/dandiset.yaml
+ok
+update refs/remotes/s3-dandiarchive/master ok
+(recording state in git...)
+Merge made by the 'ort' strategy.
+ 001412/draft/assets.jsonld     |    2 +-
+ 001412/draft/assets.yaml       | 3322 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 001412/draft/collection.jsonld |    2 +-
+ 001412/draft/dandiset.jsonld   |    2 +-
+ 001412/draft/dandiset.yaml     |    4 +-
+ 5 files changed, 3325 insertions(+), 7 deletions(-)
+
+```
+
+Switched to most recent and ran twice in row:
+
+```
+(venv-10.20261102) dandi@drogon:/mnt/backup/dandi/dandiset-manifests$ /mnt/backup/dandi/dandiset-manifests/code/update
+I: Annex version 10.20261026-g351f69fa638bde0d2f68ee5b8bab109c75945331
+list s3-dandiarchive ok
+import s3-dandiarchive 001412/draft/assets.jsonld
+ok
+import s3-dandiarchive 001412/draft/assets.yaml
+
+  requested version of object is not available in S3 bucket
+failed
+import s3-dandiarchive 001412/draft/collection.jsonld
+ok
+import s3-dandiarchive 001412/draft/dandiset.jsonld
+
+  requested version of object is not available in S3 bucket
+failed
+import s3-dandiarchive 001412/draft/dandiset.yaml
+ok
+
+  Failed to import some files from s3-dandiarchive. Re-run command to resume import.
+(recording state in git...)
+import: 2 failed
+(venv-10.20261102) dandi@drogon:/mnt/backup/dandi/dandiset-manifests$ /mnt/backup/dandi/dandiset-manifests/code/update
+I: Annex version 10.20261026-g351f69fa638bde0d2f68ee5b8bab109c75945331
+list s3-dandiarchive ok
+import s3-dandiarchive 001412/draft/assets.jsonld
+ok
+import s3-dandiarchive 001412/draft/assets.yaml
+ok
+import s3-dandiarchive 001412/draft/collection.jsonld
+ok
+import s3-dandiarchive 001412/draft/dandiset.jsonld
+ok
+update refs/remotes/s3-dandiarchive/master ok
+(recording state in git...)
+Merge made by the 'ort' strategy.
+ 001412/draft/assets.jsonld     |   2 +-
+ 001412/draft/assets.yaml       | 450 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 001412/draft/collection.jsonld |   2 +-
+ 001412/draft/dandiset.jsonld   |   2 +-
+ 001412/draft/dandiset.yaml     |   4 +-
+ 5 files changed, 449 insertions(+), 11 deletions(-)
+```
+
+
+I am not certain now I have a full backup of that bucket given such behaviors, and it remains unclear what caused it. 
+
+I think if git-annex at least provided more info -- which key and which versionId were "not available" -- it might have helped to shine the light... I guess there might be some form of interaction with our "trailing delete" policy where older versions get removed but it is unlikely there is a race condition this fast.
+
+bucket `dandiarchive` is versioned and most of the files are openly available there
+
+```
+(venv-10.20261102) dandi@drogon:/mnt/backup/dandi/dandiset-manifests$ git show git-annex:remote.log
+09b87154-c650-46d1-a036-6e03c56c0b1a bucket=dandiarchive datacenter=US encryption=none fileprefix=dandisets/ host=s3.amazonaws.com importtree=yes name=s3-dandiarchive port=80 publicurl=https://dandiarchive.s3.amazonaws.com/ region=us-east-2 signature=v4 storageclass=STANDARD type=S3 timestamp=1764702488s
+```
+
+and this particular "folder" seems to be  accessible, e.g. since can browse/see on [quilt data](https://app.quilt.bio/b/dandiarchive/tree/dandisets/001412/draft/)
+
+the "problem" is (yet to report/have it addressed) is that we keep rewriting those files too fast too often, so e.g. this one has 
+
+```
+dandi@drogon:~$ aws s3api list-object-versions     --bucket dandiarchive     --prefix dandisets/001412/draft/assets.yaml     --query "Versions[].{VersionId: VersionId, LastModified: LastModified}"     --output table | wc -l 
+1086
+
+dandi@drogon:~$ aws s3api list-object-versions     --bucket dandiarchive     --prefix dandisets/001412/draft/assets.yaml     --query "Versions[].{VersionId: VersionId, LastModified: LastModified}"     --output table | head -n 6
+-------------------------------------------------------------------
+|                       ListObjectVersions                        |
++----------------------------+------------------------------------+
+|        LastModified        |             VersionId              |
++----------------------------+------------------------------------+
+|  2026-11-03T16:40:06+00:00 |  pBuWBb3vXNGKn5kW_40eWg05mWg1k_IQ  |
+dandi@drogon:~$ aws s3api list-object-versions     --bucket dandiarchive     --prefix dandisets/001412/draft/assets.yaml     --query "Versions[].{VersionId: VersionId, LastModified: LastModified}"     --output table | tail -n 3
+|  2026-11-02T00:00:51+00:00 |  yyNkMORu2sgOxjeMq7k29Onj_Jw1MB13  |
+|  2026-11-01T23:59:50+00:00 |  rw5Oxaff7g_fK5rF17Gi7Mfv.x1pLsp5  |
++----------------------------+------------------------------------+
+```
+
+but they are all there and should be accessible so I am not sure why git-annex errors out. Indeed a new version of the key might arrive while annex is importing a prior one (might want even to gate versions may be given a timestamp?), but that IMHO warrants a warning (since it still managed to import) not an error.
+
+
+[[!meta author=yoh]]
+[[!tag projects/dandi]]
