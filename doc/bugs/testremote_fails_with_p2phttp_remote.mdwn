@@ -1,0 +1,160 @@
+### Please describe the problem in your own words.
+
+`git annex testremote --test-readonly <file> <remote>` and also the non-readonly variant recently started to fail in the Forgejo-aneksajo test suite after NeuroDebian's update to 10.20261026. This is the error I am seeing:
+
+```
+2026-10-31T13:26:29.6800139Z Remote Tests
+2026-10-31T13:26:29.6802324Z   unavailable remote
+2026-10-31T13:26:29.9914722Z     removeKey:                                       FAIL (0.31s)
+2026-10-31T13:26:29.9922352Z       ./Command/TestRemote.hs:463:
+2026-10-31T13:26:29.9930303Z       (got: Right ())
+2026-10-31T13:26:29.9930672Z       Use -p '/unavailable remote.removeKey/' to rerun this test only.
+2026-10-31T13:26:30.0465183Z     storeKey:                                        FAIL (0.05s)
+2026-10-31T13:26:30.0467492Z       ./Command/TestRemote.hs:463:
+2026-10-31T13:26:30.0467710Z       (got: Right ())
+2026-10-31T13:26:30.0468003Z       Use -p '/unavailable remote.storeKey/' to rerun this test only.
+2026-10-31T13:26:30.0663456Z     checkPresent:                                    FAIL (0.01s)
+2026-10-31T13:26:30.0665582Z       ./Command/TestRemote.hs:463:
+2026-10-31T13:26:30.0665808Z       (got: Right True)
+2026-10-31T13:26:30.0667078Z       Use -p '/checkPresent/' to rerun this test only.
+```
+(the rest show "OK", `3 out of 35 tests failed (0.53s)`)
+
+After testing different versions I found that `10.20260901.post1` still worked and `10.20261020` installed from PyPI exhibits the error. There is another version `10.20261005` in between that doesn't have a package in PyPI so I couldn't easily test. Since it mentions changes on testremote it seems likely the issue started there.
+
+I also see the issue with a local clone and p2phttp, see reproducer.
+
+
+### What steps will reproduce the problem?
+
+To setup a to-be-cloned repo and start p2phttp:
+
+[[!format bash """
+#!/usr/bin/env bash
+set -euxo pipefail
+
+mkdir repo
+cd repo
+git init
+git annex init
+echo test > test.txt
+git annex add test.txt
+git commit -m commit
+git annex p2phttp --bind 127.0.0.1 --port 54321 -J2 --debug --wideopen
+"""]]
+
+To clone and run testremote:
+
+[[!format bash """
+#!/usr/bin/env bash
+set -euxo pipefail
+
+git clone repo repo-clone
+cd repo-clone
+git config annex.security.allowed-ip-addresses 127.0.0.1
+git config remote.origin.annexUrl annex+http://127.0.0.1:54321
+git annex get test.txt
+git annex testremote --test-readonly test.txt origin
+"""]]
+
+
+### What version of git-annex are you using? On what operating system?
+
+Multiple, the issue is present in 10.20261020 and later, it is not present in 10.20260901 and before.
+
+
+### Please provide any additional information below.
+
+Full transcript from the clone and testremote:
+
+[[!format sh """
+# If you can, paste a complete transcript of the problem occurring here.
+# If the problem is with the git-annex assistant, paste in .git/annex/daemon.log
+
+$ ./clone.bash 
++ git clone repo repo-clone
+Klone nach 'repo-clone'...
+Fertig.
++ cd repo-clone
++ git config annex.security.allowed-ip-addresses 127.0.0.1
++ git config remote.origin.annexUrl annex+http://127.0.0.1:54321
++ git annex get test.txt
+get test.txt (from origin...) 
+ok                                
+(recording state in git...)
++ git annex testremote --test-readonly test.txt origin
+Remote Tests
+  unavailable remote
+    removeKey:                                       FAIL
+      ./Command/TestRemote.hs:463:
+      (got: Right ())
+      Use -p '/unavailable remote.removeKey/' to rerun this test only.
+    storeKey:                                        FAIL (0.06s)
+      ./Command/TestRemote.hs:463:
+      (got: Right ())
+      Use -p '/unavailable remote.storeKey/' to rerun this test only.
+    checkPresent:                                    FAIL
+      ./Command/TestRemote.hs:463:
+      (got: Right True)
+      Use -p '/checkPresent/' to rerun this test only.
+    retrieveKeyFile:                                 OK
+    retrieveKeyFileCheap:                            OK
+  key size Just 5; remote
+    removeKey when not present:                      OK
+    present False:                                   OK
+    storeKey:                                        OK
+    present True:                                    OK
+    storeKey when already present:                   OK
+    present True:                                    OK
+    retrieveKeyFile:                                 OK (0.02s)
+    fsck downloaded object:                          OK
+    retrieveKeyFile resume from 0:                   OK
+    fsck downloaded object:                          OK
+    retrieveKeyFile resume from 33%:                 OK
+    fsck downloaded object:                          OK
+    retrieveKeyFile resume from end:                 OK
+    fsck downloaded object:                          OK
+    removeKey when present:                          OK
+    present False:                                   OK
+  exporttree=yes; key size Just 5; key size Just 5
+    check present export when not present:           OK
+    remove export when not present:                  OK
+    store export:                                    OK
+    check present export after store:                OK
+    store export when already present:               OK
+    retrieve export:                                 OK
+    store new content to export:                     OK
+    check present export after store of new content: OK
+    retrieve export new content:                     OK
+    remove export:                                   OK
+    check present export after remove:               OK
+    retrieve export fails after removal:             OK
+    remove export directory:                         OK
+    remove export directory that is already removed: OK
+
+3 out of 35 tests failed (0.12s)
+testremote: 1 failed
+[ble: exit 1]
+
+# End of transcript or log.
+"""]]
+
+Additionally I've tested this against a public repository hosted on <https://atris.fz-juelich.de> and get a somewhat different error:
+
+[[!format sh """
+$ git annex testremote --test-readonly outputs/ccm/nhsat-nino34-e10.pdf origin
+Remote Tests
+  unavailable remote
+    removeKey:                                       git-credential-oauth 0.15.1
+input: map[host:atris.fz-juelich.de:443 path:git-annex-p2phttp protocol:annex+https wwwauth[]:Basic realm="Gitea"]
+Please complete authentication in your browser...
+annex+https://atris.fz-juelich.de:443/login/oauth/authorize?client_id=a4792ccc-144e-407e-86c9-5e7d8d9c3269&code_challenge=RZz-MkOeyBMB3dn3es9-ytpsG-IKhPKkY0p7-hq1rA8&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A34579&response_type=code&state=5cIyb0zY-zVUjYjRWngHTDJXAdLoUdhjAPcBqBVDzcU
+Unable to open browser using 'xdg-open': exit status 4
+"""]]
+
+To me it looks like it is not replacing the remote url with a proper unavailable one for these tests, leading to the ATRIS case breaking on git-credential-oauth and the local case breaking because the operations finish successfully when they shouldn't.
+
+### Have you had any luck using git-annex before? (Sometimes we get tired of reading bug reports all day and a lil' positive end note does wonders)
+
+
+[[!tag projects/ICE4]]
