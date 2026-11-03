@@ -148,7 +148,7 @@ Remote Tests
     removeKey:                                       git-credential-oauth 0.15.1
 input: map[host:atris.fz-juelich.de:443 path:git-annex-p2phttp protocol:annex+https wwwauth[]:Basic realm="Gitea"]
 Please complete authentication in your browser...
-annex+https://atris.fz-juelich.de:443/login/oauth/authorize?client_id=a4792ccc-144e-407e-86c9-5e7d8d9c3269&code_challenge=RZz-MkOeyBMB3dn3es9-ytpsG-IKhPKkY0p7-hq1rA8&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A34579&response_type=code&state=5cIyb0zY-zVUjYjRWngHTDJXAdLoUdhjAPcBqBVDzcU
+annex+https://atris.fz-juelich.de:443/login/oauth/authorize?<redacted>
 Unable to open browser using 'xdg-open': exit status 4
 """]]
 
