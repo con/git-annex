@@ -1,0 +1,46 @@
+### Please describe the problem in your own words.
+
+While setting up an old MacBook Pro (2012) to run as a git-annex disk repository, I found that the [current macOS Standalone build](https://downloads.kitenet.net/git-annex/OSX/current/10.15_Catalina/) no longer runs on macOS 10.15 / Catalina, despite the directory name.
+
+It looks like some of the dependencies used are only built for macOS 14 or later (which is unsurprising, as I believe current macOS Developer tools force macOS 14 or later).  And macOS 10.15 went entirely unsupported earlier this year (not even extended security support), so it's unsurprising it's no longer a build target.  (IIRC macOS 14 is also the oldest version that HomeBrew builds against now.)
+
+I'm reporting it just as a suggestion that maybe the macOS build directory for downloads gets renamed to, eg, macOS 14, which is [macOS Sonomoa](https://en.wikipedia.org/wiki/MacOS_Sonoma), to reflect the current situation.  And the [OSX](https://git-annex.branchable.com/install/OSX/) page gets updated to reflect that, and maybe link to some older build for "old macOS".
+
+(macOS 10.15 is the last macOS version to run on this MacBook Pro 2012, so I'll try digging back into older builds for a git-annex build that will run on macOS 10.15.  Fortunately it's very internal, so latest-security-patches isn't a huge concern.  This is just hardware upcycling while it still works.)
+
+### What steps will reproduce the problem?
+
+On a macOS 10.15.8 (Catalina) system, install the [current macOS Standalone build](https://downloads.kitenet.net/git-annex/OSX/current/10.15_Catalina/), add it to `$PATH`, and then run `git annex version`.  Observe it fails with a missing symbol:
+
+```
+dyld: Symbol not found: __ZNSt3__113basic_filebufIcNS_11char_traitsIcEEE4openEPKcj
+```
+
+apparently from a dependency `.dylib`, which AFAICT is `libbotan-3.13`, and it looks like that dylib dependency was built for macOS 14.
+
+### What version of git-annex are you using? On what operating system?
+
+macOS standalone build in the 10.15_Catalina directory today, dated `2026-10-26 14:37`.  I'd assumed it was 10.20261026, but I think it might be 10.20261021 based on the App embedded metadata.
+
+### Please provide any additional information below.
+
+```
+ewen@dagoba:~$ uname -a
+Darwin dagoba 19.6.0 Darwin Kernel Version 19.6.0: Tue Jun 21 21:18:39 PDT 2022; root:xnu-6153.141.66~1/RELEASE_X86_64 x86_64
+ewen@dagoba:~$ git annex version
+dyld: Symbol not found: __ZNSt3__113basic_filebufIcNS_11char_traitsIcEEE4openEPKcj
+  Referenced from: /Applications/OpenSource/git-annex.app/Contents/MacOS/bundle/D (which was built for Mac OS X 14.0)
+  Expected in: /usr/lib/libc++.1.dylib
+
+error: git-annex died of signal 6
+ewen@dagoba:~$ 
+ewen@dagoba:~$ ls -l /Applications/OpenSource/git-annex.app/Contents/MacOS/bundle/D
+lrwxr-xr-x  1 ewen  admin  43 Oct 26 11:16 /Applications/OpenSource/git-annex.app/Contents/MacOS/bundle/D -> usr/local/opt/botan/lib/libbotan-3.13.dylib
+ewen@dagoba:~$ 
+```
+
+### Have you had any luck using git-annex before? (Sometimes we get tired of reading bug reports all day and a lil' positive end note does wonders)
+
+Yes, git-annex has been very useful for years!
+
+(Also, related to [my previous bug report about more recent macOS Intel, dying with Signal 4](https://git-annex.branchable.com/bugs/10.20261006__58___addurl__58___git-annex_died_of_signal_4/) I can report that HomeBrew have updated their build options to no longer pin a pre-release package, and seems to be back to building against an older `crypton` without the problem.  So that's encouraging!)
