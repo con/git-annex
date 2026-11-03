@@ -44,3 +44,5 @@ ewen@dagoba:~$
 Yes, git-annex has been very useful for years!
 
 (Also, related to [my previous bug report about more recent macOS Intel, dying with Signal 4](https://git-annex.branchable.com/bugs/10.20261006__58___addurl__58___git-annex_died_of_signal_4/) I can report that HomeBrew have updated their build options to no longer pin a pre-release package, and seems to be back to building against an older `crypton` without the problem.  So that's encouraging!)
+
+> Renamed the build. [[done]] --[[Joey]]
