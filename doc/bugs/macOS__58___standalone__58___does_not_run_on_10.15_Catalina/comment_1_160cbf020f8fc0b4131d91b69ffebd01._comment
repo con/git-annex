@@ -1,0 +1,12 @@
+[[!comment format=mdwn
+ username="ewen"
+ avatar="http://cdn.libravatar.org/avatar/605b2981cb52b4af268455dee7a4f64e"
+ subject="MacPorts build of git-annex"
+ date="2026-11-03T04:07:47Z"
+ content="""
+As additional context, it looks like [MacPorts does now have a build of git-annex](https://ports.macports.org/port/git-annex/details/), although it seems infrequently updated (`Version: 10.20260316`, `Updated: 7 months, 2 weeks ago`).  It too doesn't support macOS 10.15 / Catalina any longer.
+
+But maybe it'd be worth linking from the [OSX page](https://git-annex.branchable.com/install/OSX/) if you think \"a build, but maybe old\" is worth users considering.  (By contrast I think HomeBrew has active git-annex users, as it seems to get updated/rebuilt fairly soon after a new release.)
+
+Ewen
+"""]]

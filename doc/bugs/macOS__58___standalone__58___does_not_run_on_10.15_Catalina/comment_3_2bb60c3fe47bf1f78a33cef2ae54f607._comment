@@ -1,0 +1,26 @@
+[[!comment format=mdwn
+ username="ewen"
+ avatar="http://cdn.libravatar.org/avatar/605b2981cb52b4af268455dee7a4f64e"
+ subject="show git-annex release notes for 2026"
+ date="2026-11-03T05:41:13Z"
+ content="""
+Also in case it helps someone else later, as best I can tell the release notes are in the git repository as `doc/news/version_10.20xxxxxx.mdwn`, but it seems like the older release notes get deleted when newer ones are added (at a guess, to keep ~4 release notes showing up on the [news page](https://git-annex.branchable.com/news/)).
+
+This makes reviewing the release notes since an older release somewhat more difficult than it might be, as it seems like the only record of the older release notes is as deleted files, in the git history.
+
+I ended up coming up with:
+
+```
+git clone git://git-annex.branchable.com/ git-annex
+cd git-annex/doc/news
+git log --stat f1985eabce137adb8851cbbaea1fa8474406f7b5..HEAD . | egrep '^commit|10.2026.*\+\+\+\+\+\+' | grep -B 1 doc/news | grep -v '^--' | sed 'N;s/\n/ /; s/^commit/git show/; s/  doc/:doc/; s/mdwn.*$/mdwn/' | tac | sh -x
+```
+
+to see the release notes for 2026, in chronologically increasing order (ie oldest to newest).  Where the magic git commit hash was found by searching with \"git log\" for the last 2025 / first 2026 commit to `doc/news`, since the version I found that ran for me (on macOS 10.15) was the last 2025 standalone build, and thus I wanted to know what had changed since then.
+
+(Possibly older news articles could be `git mv`-ed to an archive directory rather than `git rm`-ed to make this easier in future, without cluttering up the news page?)
+
+Anyway skim reading the least year's worth of release notes (from the above command, and some slight tidying up), I don't see much that an internal-only git annex remote-only would particularly need *before* the various October 2026 fixes (which I can't easily have due to build dependencies not supporting macOS 10.15).  The only thing that stood out as potentially desirable is the hash performance improvements in `git-annex 10.20260624`, but for this mostly-archivable, infrequently updated use case I can probably live without those too.
+
+Ewen
+"""]]
