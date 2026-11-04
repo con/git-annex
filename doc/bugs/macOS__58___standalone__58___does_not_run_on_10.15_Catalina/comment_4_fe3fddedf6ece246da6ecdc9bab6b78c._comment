@@ -1,0 +1,14 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 4"""
+ date="2026-11-03T14:46:56Z"
+ content="""
+The CHANGELOG file is what you want I think.
+
+I've updated the website re MacPorts.
+
+I suspect it may even need macOS 15. That's the OS that the build is
+happening on. I don't think it makes sense to include the supported OS
+version in the directory name really; it's unlikely there would be 2
+incompatible versions that both would have builds happening.
+"""]]
