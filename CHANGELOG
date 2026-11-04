@@ -12,6 +12,8 @@ git-annex (10.20261027) UNRELEASED; urgency=medium
   * Added transfers command, displays a live view of transfers.
   * Avoid display issues with multiple progress meters when not in a
     unicode locale.
+  * Fix testremote failure with p2phttp remote.
+    (Reversion from 10.20261005)
 
  -- Joey Hess <id@joeyh.name>  Mon, 26 Oct 2026 18:34:32 -0400
 

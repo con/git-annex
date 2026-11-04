@@ -70,6 +70,9 @@ unavailableP2PHttpUrl :: P2PHttpUrl -> P2PHttpUrl
 unavailableP2PHttpUrl p = p
 	{ p2pHttpBaseUrl = (p2pHttpBaseUrl p) { baseUrlHost = "!dne!" } }
 
+isUnavailableP2PHttpUrl :: P2PHttpUrl -> Bool
+isUnavailableP2PHttpUrl p = unavailableP2PHttpUrl p == p
+
 -- When a p2phttp url is on the same host as a git repo, which also uses
 -- http, the same username+password is assumed to be used for both.
 isP2PHttpSameHost :: P2PHttpUrl -> Git.Repo -> Bool

@@ -91,15 +91,17 @@ p2pHttpClientVersions allowedversion rmt reprobeurl fallback clientaction = do
 	-- When unable to speak to the server, re-probe for its url, and
 	-- try again if it changed. This avoids the user needing to manually
 	-- update the remote.name.annexUrl config.
-	fallbackreprobe s = do
-		r <- reprobeurl
-		gc <- Annex.getRemoteGitConfig r
-		case remoteAnnexP2PHttpUrl gc of
-			Just p2purl' | Just p2purl' /= p2purl ->
-				p2pHttpClientVersions' allowedversion p2purl' rmt r fallback clientaction >>= \case
-					Just res -> return res
-					Nothing -> fallback s
-			_ -> fallback s
+	fallbackreprobe s
+		| maybe False isUnavailableP2PHttpUrl p2purl = fallback s
+		| otherwise = do
+			r <- reprobeurl
+			gc <- Annex.getRemoteGitConfig r
+			case remoteAnnexP2PHttpUrl gc of
+				Just p2purl' | Just p2purl' /= p2purl ->
+					p2pHttpClientVersions' allowedversion p2purl' rmt r fallback clientaction >>= \case
+						Just res -> return res
+						Nothing -> fallback s
+				_ -> fallback s
 
 p2pHttpClientVersions'
 	:: (ProtocolVersion -> Bool)
