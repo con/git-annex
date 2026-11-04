@@ -1,0 +1,8 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 1"""
+ date="2026-11-04T16:28:52Z"
+ content="""
+bisected to [[!f0c046f016aab6485eea57101df953895728e8b4]],
+"re-probing of annex.url for annex+https on connection failure".
+"""]]
