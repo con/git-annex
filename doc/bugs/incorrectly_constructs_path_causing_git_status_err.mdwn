@@ -1,0 +1,47 @@
+### Please describe the problem in your own words.
+
+I am in a worktree checkout within `.git-meta/worktrees/` subtree, and then when running `git status` git annex crashes due to building up the path having `.git-meta/.git-meta/worktrees/`:
+
+
+```shell
+❯ pwd
+/home/yoh/proj/CON/talks/.git-meta/worktrees/enh-old-talks
+
+❯ git status
+Refresh index: 100% (826/826), done.
+git-annex: /home/yoh/proj/CON/talks/.git-meta/.git-meta/worktrees/enh-old-talks/sourcedata/con-site-specific: changeWorkingDirectory: does not exist (No such file or directory)
+HasCallStack backtrace:
+  collectBacktraces, called at libraries/ghc-internal/src/GHC/Internal/Exception.hs:169:13 in ghc-internal:GHC.Internal.Exception
+  toExceptionWithBacktrace, called at libraries/ghc-internal/src/GHC/Internal/IO.hs:260:11 in ghc-internal:GHC.Internal.IO
+  throwIO, called at libraries/exceptions/src/Control/Monad/Catch.hs:308:12 in exceptions-0.10.9-d4a4:Control.Monad.Catch
+  throwM, called at Messages.hs:387:17 in git-annex-10.20260901-63197oCsGBZEJZmwc2PKTY-git-annex:Messages
+
+
+fatal: the remote end hung up unexpectedly
+fatal: 'git status --porcelain=2' failed in submodule sourcedata/con-site-specific
+
+❯ ls -ld .git
+lrwxrwxrwx 1 yoh yoh 37 Nov  5 13:23 .git -> ../../../.git/worktrees/enh-old-talks/
+
+❯ ls -ld /home/yoh/proj/CON/talks/.git-meta/.git-meta/worktrees/enh-old-talks/sourcedata/con-site-specific /home/yoh/proj/CON/talks/.git-meta/worktrees/enh-old-talks/sourcedata/con-site-specific
+ls: cannot access '/home/yoh/proj/CON/talks/.git-meta/.git-meta/worktrees/enh-old-talks/sourcedata/con-site-specific': No such file or directory
+drwxr-xr-x 1 yoh yoh 366 Nov  5 13:48 /home/yoh/proj/CON/talks/.git-meta/worktrees/enh-old-talks/sourcedata/con-site-specific/
+
+```
+
+FWIW the repo itself is https://datasets.datalad.org/centerforopenneuroscience/talks/.git .
+
+
+
+### What version of git-annex are you using? On what operating system?
+
+```shell
+❯ git annex version | head -n 1
+git-annex version: 10.20260901-g29d2c4f5723a6bc5dc380b5fd75b4e60aad6e4e1
+
+```
+
+operating within worktrees would soon be more popular within repronim circles as `babs` got that functionality, so we better make it right
+
+[[!meta author=yoh]]
+[[!tag projects/repronim]]
