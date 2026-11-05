@@ -86,6 +86,7 @@ start o t ti endvar remotemap = do
 	startingNoMessage ai $ do
 		showStartMessage (StartMessage verb ai si)
 		showNote $ UnquotedString $ fromto ++ " " ++ remotename
+		maybeAddJSONField "remote-uuid" (transferUUID t)
 		(tfile, _, _) <- fromRepo $ transferFileAndLockFile t
 		metered Nothing k Nothing $ \_ p ->
 			watchSizeWith (getprogress tfile) p $
