@@ -48,6 +48,8 @@ bug reports on git-annex if it cannot be built without LLM generated code.
 [This commit](https://github.com/ghc/ghc/commit/a5ec467ee3d4e77c026437a545981269acde3434)
 is probably the first, and will be released in the upcoming ghc 9.15.
 
+[GHC policy on LLM contributions](https://gitlab.haskell.org/ghc/ghc/-/wikis/contributing/AI)
+
 git-annex remains buildable with older versions of ghc back to 9.6.6.
 
 This will probably prevent git-annex from taking advantage of 
@@ -121,6 +123,8 @@ that, and as such, does not seem like a trustworthly package to use.
 
 git-annex has switched for botan for hashing, but still depends on crypton
 for https, and for the skein and blake2 hashes.
+
+(See [[todo/remove_dependency_on_crypon_and_tls]])
 
 ### tls
 
