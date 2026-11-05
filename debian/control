@@ -90,6 +90,9 @@ Build-Depends:
 	libghc-servant-client-core-dev,
 # not yet in Debian
 #	libghc-libmagic-dev,
+#	libghc-botan-low-dev
+# remove libbotan-3-dev once libghc-botan-low-dev is uncommented
+	libbotan-3-dev,
 	lsof [linux-any],
 	ikiwiki,
 	libimage-magick-perl,

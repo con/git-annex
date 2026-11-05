@@ -1,9 +1,10 @@
-git-annex (10.20261027) UNRELEASED; urgency=medium
+git-annex (10.20261105) UNRELEASED; urgency=medium
 
   * The Linux arm64-ancient build has reached end of security support 
     and will be removed after this release. Android users are recommended
     to switch to running `pkg install git-annex` inside termux.
   * git-annex.cabal: Switch from magic to libmagic.
+  * Botan is enabled by default; removed build flag.
   * Fix mimetype and mimencoding detection of non-ascii filenames 
     in non-unicode locales.
   * Fix bug in parsing the P2P protocol that caused breakage when filenames

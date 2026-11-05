@@ -60,15 +60,11 @@ buildFlags = filter (not . null)
 	, "S3"
 	, "WebDAV"
 	, "Servant"
+	, "Botan"
 #ifdef WITH_OSPATH
 	, "OsPath"
 #else 
 #warning Building without the OsPath build flag set results in slower filename manipulation and is not recommended.
-#endif
-#ifdef WITH_BOTAN
-	, "Botan"
-#else 
-#warning Consider building with the Botan build flag set, it speeds up checksumming by up 4x to 8x.
 #endif
 #ifdef WITH_BLAKE3
 	, "Blake3"

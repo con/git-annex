@@ -23,14 +23,11 @@ This is separate, though obviously not entirely disconnected from
 
 Here is a plan:
 
-* Switch git-annex to botan for hash functions. There is already a build
-  flag, but it would be easier if botan bundled the C library in the
-  haskell package. Which they have considered doing.  
-  The `botan-default` branch makes the switch.
-  (Waiting on a fix for https://github.com/joeyh/git-annex-wheel/
-  test failure.)
-* botan lacks skein and blake2, so would need to get those hashes another
-  way
+* Switch git-annex to botan for hash functions. **Done**, although with
+  some pain for builders, since botan-low doesn't bundle the C library in the
+  haskell package so the C library now needs to be installed separately. 
+* botan lacks skein and blake2, so would get those hashes another
+  way to avoid needing crypton for them
 * Switch from http-client-tls to http-client-openssl.
 * Switch from warp-tls to warp-s2n-tls? Alternatively, warp-tls is only used by
   the webapp and p2phttp; the webapp is mostly used on localhost and

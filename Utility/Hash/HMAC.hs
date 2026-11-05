@@ -5,9 +5,8 @@
  - License: BSD-2-clause
  -}
 
-{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE OverloadedStrings, CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Utility.Hash.HMAC (
 	Mac(..),
@@ -19,15 +18,9 @@ import Utility.Hash.Types
 import qualified Data.ByteString as S
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-#ifdef WITH_BOTAN
 import Botan.Low.MAC
 import Botan.Low.Hash hiding (HashDigest)
 import System.IO.Unsafe (unsafePerformIO)
-#else
-import Utility.Hash.Crypton (hashDigest)
-import "crypton" Crypto.MAC.HMAC hiding (Context)
-import "crypton" Crypto.Hash
-#endif
 
 data Mac = HmacSha1 | HmacSha224 | HmacSha256 | HmacSha384 | HmacSha512
 	deriving (Eq)
@@ -45,19 +38,12 @@ calcMac f mac = case mac of
 	HmacSha384 -> use SHA384
 	HmacSha512 -> use SHA512
   where
-#ifdef WITH_BOTAN
 	use alg k m = unsafePerformIO $ do
 		maccer <- macInit (hmac alg)
 		macSetKey maccer k
 		macUpdate maccer m
 		auth <- macFinal maccer
 		return (f (HashDigest auth))
-#else
-	use alg k m = f (hashDigest (hmacGetDigest (hmacWitnessAlg alg k m)))
-
-	hmacWitnessAlg :: HashAlgorithm a => a -> S.ByteString -> S.ByteString -> HMAC a
-	hmacWitnessAlg _ = hmac
-#endif
 
 -- Check that all the MACs continue to produce the same.
 props_macs_stable :: [(String, Bool)]
