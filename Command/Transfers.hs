@@ -85,11 +85,7 @@ start o t ti endvar remotemap = do
 	let ai = ActionItemAssociatedFile af k
 	startingNoMessage ai $ do
 		showStartMessage (StartMessage verb ai si)
-		case M.lookup (transferUUID t) remotemap of
-			Just r -> showNote $ UnquotedString $
-				fromto ++ " " ++ name r
-			Nothing -> noop
-
+		showNote $ UnquotedString $ fromto ++ " " ++ remotename
 		(tfile, _, _) <- fromRepo $ transferFileAndLockFile t
 		metered Nothing k Nothing $ \_ p ->
 			watchSizeWith (getprogress tfile) p $
@@ -99,13 +95,21 @@ start o t ti endvar remotemap = do
 		next $ return True
   where
   	k = transferKey t
+	
 	si = SeekInput []
-  	verb = case transferDirection t of
+  	
+	verb = case transferDirection t of
 		Upload -> "send"
 		Download -> "receive"
+	
 	fromto = case transferDirection t of
 		Upload -> "to"
 		Download -> "from"
+	
+	remotename =
+		maybe (fromUUID (transferUUID t)) name $
+			M.lookup (transferUUID t) remotemap
+	
 	waitend = 
 		liftIO $ atomically $ takeTMVar endvar
 	
