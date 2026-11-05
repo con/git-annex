@@ -25,9 +25,9 @@ import Control.Monad.IO.Class
 import qualified Data.ByteString as B
 import Data.Char
 import Utility.Env
+import Annex.Path
 
 #ifdef WITH_MAGICMIME
-import Annex.Path
 import Magic
 import qualified Data.List.NonEmpty as NE
 import qualified System.OsString.Internal as OS
