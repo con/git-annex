@@ -17,7 +17,7 @@ git-annex (10.20261105) UNRELEASED; urgency=medium
     (Reversion from 10.20261005)
   * Allow the MAGIC environment variable to override the bundled magic file
     location.
-  * NoLLMDependencies: Update for http-semantics. 
+  * NoLLMDependencies: Update for network and http-semantics. 
 
  -- Joey Hess <id@joeyh.name>  Mon, 26 Oct 2026 18:34:32 -0400
 

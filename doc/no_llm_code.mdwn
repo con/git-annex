@@ -132,6 +132,12 @@ for https, and for the skein and blake2 hashes.
 
 [First LLM generated code](https://github.com/haskell-tls/hs-tls/commit/218abdd67a4cde30854b5ca9b146b269da53bc07)
 
+### network
+
+[network](https://hackage.haskell.org/package/network) since 3.2.9.0
+
+[First LLM generated code](https://github.com/haskell/network/commit/c4f7be5a9d726128b8377c0144d5c4ef840b76ca)
+
 ### http-semantics
 
 [http-semantics](https://hackage.haskell.org/package/http-semantics) since
