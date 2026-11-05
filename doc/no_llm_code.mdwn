@@ -48,8 +48,6 @@ bug reports on git-annex if it cannot be built without LLM generated code.
 [This commit](https://github.com/ghc/ghc/commit/a5ec467ee3d4e77c026437a545981269acde3434)
 is probably the first, and will be released in the upcoming ghc 9.15.
 
-[GHC policy on LLM contributions](https://gitlab.haskell.org/ghc/ghc/-/wikis/contributing/AI)
-
 git-annex remains buildable with older versions of ghc back to 9.6.6.
 
 This will probably prevent git-annex from taking advantage of 
@@ -58,6 +56,8 @@ That is deeply unfortunate. This is the main reason why git-annex is not
 guaranteed to never change to depend on LLM generated code, because cutting
 it off from all future Haskell language improvements may be worse than the
 alternative.
+
+[GHC policy on LLM contributions](https://gitlab.haskell.org/ghc/ghc/-/wikis/contributing/AI)
 
 ### ram
 
