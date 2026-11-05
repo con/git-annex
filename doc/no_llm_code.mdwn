@@ -81,8 +81,6 @@ in order to prevent such dependencies using the newer version.
 
 [First LLM generated code](https://github.com/yesodweb/persistent/commit/ac0a8698f38ae3b07acdacf0ce236d7fc73bb077)
 
-git-annex supports being built with older versions.
-
 ### warp
 
 [warp](https://hackage.haskell.org/package/warp) since 3.4.11
@@ -121,20 +119,14 @@ The point of cryptonite was to package up industry standard C
 implementations of crypto functions in haskell. This is no longer
 that, and as such, does not seem like a trustworthly package to use.
 
-git-annex supports being built with older versions. The botan build flag
-makes git-annex use botan rather than crypton for hashing (except for skein
-and blake2 hashes).
-
-Unfortunately, crypton is a dependency of several other packages,
-including `tls`. 
+git-annex has switched for botan for hashing, but still depends on crypton
+for https, and for the skein and blake2 hashes.
 
 ### tls
 
 [tls](https://hackage.haskell.org/package/tls) since 2.4.4
 
 [First LLM generated code](https://github.com/haskell-tls/hs-tls/commit/218abdd67a4cde30854b5ca9b146b269da53bc07)
-
-git-annex supports being built with older versions.
 
 ### http-semantics
 
@@ -145,15 +137,13 @@ git-annex supports being built with older versions.
 
 An indirect dependency of warp.
 
-git-annex supports being built with older versions.
-
 ### Cabal
 
 [First LLM generated code](https://github.com/haskell/cabal/commit/da8b314563feb15a3df7bc1baeef4b7aa08f7578)
 
 Cabal is needed to build git-annex, but is not linked into it.
 There is a risk that a new version of Cabal could need changes to
-git-annex.cabal that prevent an old version building it.
+git-annex.cabal that prevents an old version building it.
 
 ### git
 
