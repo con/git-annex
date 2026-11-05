@@ -24,3 +24,5 @@ extra-deps:
 - blake3-0.3
 - libmagic-1.3.2
 - ram-0.22.0
+- botan-low-0.2.0.1
+- botan-bindings-0.3.0.0
