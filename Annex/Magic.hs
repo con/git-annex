@@ -17,6 +17,7 @@ module Annex.Magic (
 	getMagicMimeType,
 	getMagicMimeEncoding,
 	parseMagicMime,
+	magicFileLocation,
 ) where
 
 import Common
