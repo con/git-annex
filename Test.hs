@@ -28,8 +28,10 @@ import Control.Concurrent.STM hiding (check)
 import qualified Utility.RawFilePath as R
 import qualified Data.List.NonEmpty as NE
 import Data.String
+#ifdef WITH_MAGICMIME
 #ifdef WITH_OSPATH
 import System.OsString (osstr)
+#endif
 #endif
 
 import Common
