@@ -24,6 +24,8 @@ import Types.Mime
 import Control.Monad.IO.Class
 import qualified Data.ByteString as B
 import Data.Char
+import Utility.Env
+
 #ifdef WITH_MAGICMIME
 import Annex.Path
 import Magic
@@ -44,17 +46,19 @@ magicFileLocation =
 			-- in ../share/misc/ relative
 			-- to the program.
 			pd <- takeDirectory <$> programPath
-			pure $ Just $
+			use $
 				pd
 					</> literalOsPath ".."
 					</> literalOsPath "share"
 					</> literalOsPath "misc"
 					</> literalOsPath "magic.mgc"
 #endif
-		Just d -> pure $ Just $
+		Just d -> use $
 			d
 				</> literalOsPath "magic"
 				</> literalOsPath "magic.mgc"
+  where
+	use p = Just . maybe p toOsPath <$> getEnv "MAGIC"
 
 initMagicMime :: IO (Maybe Magic)
 #ifdef WITH_MAGICMIME
