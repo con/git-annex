@@ -138,7 +138,14 @@ git-annex supports being built with older versions.
 
 ### http-semantics
 
-TODO
+[http-semantics](https://hackage.haskell.org/package/http-semantics) since
+0.4.2
+
+[First LLM generated code](https://github.com/kazu-yamamoto/http-semantics/commit/278a0d1ddaba9b52f3ba72cc3449d06839dca3cc)
+
+An indirect dependency of warp.
+
+git-annex supports being built with older versions.
 
 ### Cabal
 
