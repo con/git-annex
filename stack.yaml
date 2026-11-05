@@ -9,7 +9,6 @@ flags:
     debuglocks: false
     benchmark: true
     ospath: true
-    botan: false
     blake3: true
     xxh3: true
   file-io:
