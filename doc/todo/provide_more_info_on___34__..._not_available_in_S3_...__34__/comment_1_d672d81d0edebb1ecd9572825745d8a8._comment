@@ -1,0 +1,60 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 1"""
+ date="2026-11-06T13:30:05Z"
+ content="""
+This error message is displayed when S3 getObject fails with a 412
+"Precondition Failed".
+
+I suspect you may be running into S3 eventual consistency issues.
+
+The key is of course the one pointed to by the file that it's acting on
+when this error is displayed. So I don't see any reason for git-annex to
+display the key.
+
+As for displaying the versionid or etag, I think that would already be done
+by --debug when it shows the http request headers.
+
+I did develop this patch to display that as part of the error message,
+but I'd only be inclined to apply it if --debug doesn't have the
+information.
+
+	diff --git a/Remote/S3.hs b/Remote/S3.hs
+	index bf77e56419..74569a0a3a 100644
+	--- a/Remote/S3.hs
+	+++ b/Remote/S3.hs
+	@@ -762,9 +762,10 @@ retrieveExportWithContentIdentifierS3 hv r rs info loc (cid:_) dest gk p =
+	   where
+	 	go iv = withS3Handle hv $ \case
+	 		Right h -> do
+	-			rewritePreconditionException $ retrieveHelper' (gitconfig r) info h dest p iv $
+	-				limitGetToContentIdentifier cid $
+	-					S3.getObject (bucket info) o
+	+			rewritePreconditionException cid o $
+	+				retrieveHelper' (gitconfig r) info h dest p iv $
+	+					limitGetToContentIdentifier cid $
+	+						S3.getObject (bucket info) o
+	 			k <- either return id gk
+	 			case extractContentIdentifier cid o of
+	 				Right vid -> do
+	@@ -779,12 +780,16 @@ retrieveExportWithContentIdentifierS3 _ _ _ _ _ [] _ _ _ = giveup "missing conte
+	 
+	 {- Catch exception getObject returns when a precondition is not met,
+	  - and replace with a more understandable message for the user. -}
+	-rewritePreconditionException :: Annex a -> Annex a
+	-rewritePreconditionException a = catchJust (Url.matchStatusCodeException want) a $ 
+	-	const $ giveup "requested version of object is not available in S3 bucket"
+	+rewritePreconditionException :: ContentIdentifier -> S3.Object -> Annex a -> Annex a
+	+rewritePreconditionException cid o a = catchJust (Url.matchStatusCodeException want) a $ 
+	+	const $ giveup $ "requested version of object (" ++ ciddesc ++ ") ++ is not available in S3 bucket"
+	   where
+	 	want st = statusCode st == 412 && 
+	 		statusMessage st == "Precondition Failed"
+	+	ciddesc = case extractContentIdentifier cid o of
+	+		Left etag -> "etag " ++ T.unpack etag
+	+		Right (Just (S3VersionID _ vid)) -> T.unpack vid
+	+		Right Nothing -> mempty
+	 
+	 -- Does not check if content on S3 is safe to overwrite, because there
+	 -- is no atomic way to do so. When the bucket is versioned, this is
+"""]]
