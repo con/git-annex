@@ -3,6 +3,6 @@
  subject="""comment 1"""
  date="2026-11-06T14:32:36Z"
  content="""
-Isn't this the same problem as
-[[info_fails_to_resolve_from_submodule_in_worktree]]?
+I think this is the problem as the (already fixed)
+[[info_fails_to_resolve_from_submodule_in_worktree]].
 """]]
