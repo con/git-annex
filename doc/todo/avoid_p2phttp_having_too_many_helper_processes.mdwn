@@ -1,0 +1,31 @@
+When `git-annex p2phttp` is serving many git repositories at the same time,
+it should avoid running a large number of helper processes like
+`git cat-file` and `git hash-object`. To avoid running out of process
+limits.
+
+Currently for N repositories, there are N cat-files,
+but `(min jobs cpus) * N` hash-objects. (And the same for check-attr and
+check-ignore, although I don't think p2phttp would usually run those.)
+
+The point of that parallelization is that hashing is a cpu bound operation
+and so can parallelize. But that was implemented assuming git-annex is
+running in 1 repository, while with p2phttp it can be running in multiple
+repositories. (With a large number of local git remotes it might also be
+possible for the same kind of problem to happen.)
+
+Even the 1 cat-file per repository can be too many, if there are thousands
+of repositories, eventually there will be thousands of cat-files, most of
+them long idle, and it will eventually run out of process limits.
+
+Seems to me that this needs a pool that is in some way shared amoung all the
+repositories, and is capped out at some reasonable maximum number of
+processes. So when a new cat-file or hash-object is needed and the pool is
+full, it can find a currently unused process running in some other 
+repository and free it.
+
+The reasonable maximum number is more than the number of cpus, because
+stopping and later restarting one of these processes is not a free
+operation. Some fraction of the maximum number of processes might be a good
+value. --[[Joey]]
+
+[[!tag projects/ICE4]]
