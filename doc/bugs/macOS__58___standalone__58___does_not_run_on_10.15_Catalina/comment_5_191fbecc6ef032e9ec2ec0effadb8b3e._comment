@@ -1,0 +1,20 @@
+[[!comment format=mdwn
+ username="ewen"
+ avatar="http://cdn.libravatar.org/avatar/605b2981cb52b4af268455dee7a4f64e"
+ subject="macOS builds"
+ date="2026-11-06T03:51:06Z"
+ content="""
+Thanks for the pointer to the CHANGELOG.  I'd missed that file once I'd cloned the repo.  FWIW the CHANGELOG (a) doesn't seem to be linked anywhere obvious for web viewing, (b) the gitweb view is pretty hidden (only linked on the [download](https://git-annex.branchable.com/download/) page, which is possibly only linked from the [install/fromsource](https://git-annex.branchable.com/install/fromsource/) page), and (c) the gitweb is quite slow.  So at present cloning the git repo is probably the easiest way to to read the CHANGELOG (versus doc/news which is on the web site, but only a recent subset).
+
+Possibly there's some way to make the `CHANGELOG` file available as a plain text view on the web more directly than \"find the gitweb, navigate to the tree\"?  And maybe link it from a doc/news article that sorts just after the \"recent changes\", as a \"for older release notes, see...\".
+
+For the record, from some digging my guess is that the macOS 10.15 to macOS 14/15 minimum version change happened when the builds moved to GitHub Actions (and thus GitHub Runners), which as best I can tell was around May 2026.  So builds up to April 2026 *might* also work on macOS 10.15.  But I didn't see anything particularly relevant to my use case between January 2026 and April 2026, so I've not tried any builds newer than December 2025 on the macOS 10.15 system.
+
+I'd tend to agree with just having a single macOS build at this point.  The next likely incompatible change is to stop building Intel/macOS \"fat\" binaries, which I suspect some combination of Apple and/or GitHub will force on you sometime in the next 12 months.  But that's a very obvious failure case -- you get \"Bad CPU type in executable\" when trying to run anything if running an ARM-only build on an Intel system.
+
+So it'd be worth documenting the expected minimum supported macOS for the standalone build (here macOS 15, or maybe macOS 14), but it doesn't need to be in the directory name.  And it'd be worth noting when the builds go ARM/M1-only (which I'd guess will be when GitHub remove the macOS Intel runners, likely in 2027, or when macOS 15 goes unsupported).
+
+If you haven't already, I think you can mark this issue as \"done\" at your convenience, as I have setup that seems to work now, and the directory name is no longer misleading.
+
+Ewen
+"""]]
