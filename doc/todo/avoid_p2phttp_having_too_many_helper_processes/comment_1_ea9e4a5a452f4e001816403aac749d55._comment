@@ -1,0 +1,27 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 1"""
+ date="2026-11-06T18:11:13Z"
+ content="""
+Another approach would be to keep a bounded pool of PerRepoServerStates.
+When a PerRepoServerState needs to be added to the pool and the
+pool is full, first find one for a different repository that is not in use,
+and remove it from the pool, stopping its helper processes.
+
+This seems easier to implement than coordinating a process pool 
+between Annex objects.
+
+And it could also avoid problems with too many open files, since it
+could also close open file handles in the Annex object such as the
+keys db handle. I do think that running out of file descriptors would be
+the next problem after too many processes when scaling p2phttp up to
+serving a large number of repositories, so this might as well solve that
+too.
+
+There would still be worker pools for processes like `git hash-object`
+that are shared amoung all threads serving the same repository,
+scaling up to one per cpu. So long as the pool is capped at some reasonable
+number (say 100), that is ok, it means something like `100 * (cpus + 1)`
+processes, probably well under the maximum number of processes. Make
+the maximum concurrent repositories served a tunable value.
+"""]]
