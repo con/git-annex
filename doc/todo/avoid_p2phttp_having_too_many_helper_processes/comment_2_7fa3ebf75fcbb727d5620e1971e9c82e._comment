@@ -3,13 +3,15 @@
  subject="""comment 2"""
  date="2026-11-08T23:48:18Z"
  content="""
-Refinement: The AnnexWorkerPool is already a bounded pool of Annex objects,
-so lift it out of PerRepoServerState so there is a single bounded pool.
+Refinement: Each PerRepoServerState already has a WorkerPool of Annex
+objects.
 
-This would let --jobs control the total number of worker threads across all
-repositories served. An especially active repository would get more worker
-threads actively running. And helper processes, started by the worker
-threads, would be limited to a small multiple of --jobs.
+When returning an Annex object to the pool, decide if it should be left
+warmed up, or be cooled down (stopping helper processes etc).
+
+To decide, have a quantity semaphore. Check it when getting an Annex
+object from the WorkerPool. If there are too many warm objects, block
+until one gets cooled down.
 
 Question: PerRepoServerState also has an annexState and annexRead that are
 not part of the AnnexWorkerPool so would not be affected by that. 
