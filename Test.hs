@@ -95,6 +95,7 @@ import qualified Utility.Aeson
 import qualified Utility.CopyFile
 import qualified Utility.MoveFile
 import qualified Utility.StatelessOpenPGP
+import qualified Utility.LRU
 import qualified Types.Remote
 #ifndef mingw32_HOST_OS
 import qualified Remote.Helper.Encryptable
@@ -209,6 +210,7 @@ properties = localOption (QuickCheckTests 1000) $ inOrderTestGroup "QuickCheck" 
 	, testProperty "prop_standardGroups_parse" Logs.PreferredContent.prop_standardGroups_parse
 	, testProperty "prop_balanced_stable" Annex.Balanced.prop_balanced_stable
 	, testProperty "prop_httpConfigKeys_sane" Git.Config.Url.prop_httpConfigKeys_sane
+	, testProperty "prop_LRU_sane" Utility.LRU.prop_LRU_sane
 	] ++ map (uncurry testProperty) combos
   where
 	combos = concat

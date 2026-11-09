@@ -1148,6 +1148,7 @@ Executable git-annex
     Utility.LockPool.LockHandle
     Utility.LockPool.STM
     Utility.LogFile
+    Utility.LRU
     Utility.Lsof
     Utility.MagicWormhole
     Utility.Matcher
