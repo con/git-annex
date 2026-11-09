@@ -27,6 +27,7 @@ import Types.NumCopies
 import Types.WorkerPool
 import Annex.WorkerPool
 import Annex.BranchState
+import Annex.Action
 import Annex.Concurrent
 import Types.Concurrency
 import Types.Cluster
@@ -40,13 +41,15 @@ import qualified Annex.Branch
 import qualified P2P.Proxy as Proxy
 import qualified Types.Remote as Remote
 import Remote.List
+import Utility.LRU
 
-import Servant
+import Servant hiding (Unique)
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import Control.Concurrent.Async
 import Control.Concurrent.STM
 import Data.Time.Clock.POSIX
+import Data.Unique
 
 data P2PHttpServerState = P2PHttpServerState
 	{ servedRepos :: M.Map UUID PerRepoServerState
@@ -86,7 +89,9 @@ data PerRepoServerState = PerRepoServerState
 	, branchChangesInProgress :: TMVar Bool
 	}
 
-type AnnexWorkerPool = TMVar (WorkerPool (Annex.AnnexState, Annex.AnnexRead))
+type AnnexWorker = (Annex.AnnexState, Annex.AnnexRead)
+
+type AnnexWorkerPool = TMVar (WorkerPool (AnnexWorker, Unique))
 
 type GetServerMode = IsSecure -> Maybe Auth -> ServerMode
 
@@ -309,9 +314,10 @@ mkP2PHttpServerState
 	-> ProxyConnectionPoolSize
 	-> ClusterConcurrency
 	-> LockedFilesQSem
+	-> AnnexWorkerLimit	
 	-> AnnexWorkerPool
 	-> Annex P2PHttpServerState
-mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterconcurrency lockedfilesqsem workerpool = do
+mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterconcurrency lockedfilesqsem workerlimit workerpool = do
 	enableInteractiveBranchAccess
 	myuuid <- getUUID
 	myproxies <- M.lookup myuuid <$> getProxies
@@ -373,7 +379,7 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 					proxyConnection proxyconnectionpoolsize relv connparams runner proxypool conn ready
 				Nothing -> checkcanproxy runnertype annexstate annexread myproxies proxypool relv connparams ready
 	  where
-		runner = annexActionRunner runnertype workerpool annexstate annexread
+		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
 
 	checkcanproxy runnertype annexstate annexread myproxies proxypool relv connparams ready =
 		runner
@@ -393,7 +399,7 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 			Left ex -> return $ Left $
 				ConnectionFailed $ show ex
 	  where
-		runner = annexActionRunner runnertype workerpool annexstate annexread
+		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
 		bypass = P2P.Bypass $ S.fromList $ connectionBypass connparams
 		proxyconnection openconn = openconn >>= \case
 			Right conn -> proxyConnection proxyconnectionpoolsize
@@ -652,30 +658,117 @@ withAnnexWorkerPool mconc mcpus a = do
 	startConcurrency transferStages $
 		Annex.getState Annex.workers >>= \case
 			Nothing -> giveup "Use -Jn or set annex.jobs to configure the number of worker threads."
-			Just wp -> a wp
+			Just wp -> do
+				p <- liftIO $ atomically $ readTMVar wp
+				tp <- liftIO $ taggedWorkerPool p
+				awp <- liftIO $ newTMVarIO tp
+				a awp
 
-inAnnexWorker :: AnnexWorkerPool -> Annex a -> IO (Either SomeException a)
-inAnnexWorker poolv annexaction = do
-	(workerstrd, workerstage) <- atomically $ waitStartWorkerSlot poolv
+inAnnexWorker :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Either SomeException a)
+inAnnexWorker workerlimit poolv annexaction = do
+	((workerstrd, workerid), workerstage) <- atomically $
+		allocateAnnexWorker workerlimit $ waitStartWorkerSlot poolv
 	resv <- newEmptyTMVarIO
 	aid <- async $ do
 		(res, strd) <- Annex.run workerstrd annexaction
 		atomically $ putTMVar resv res
-		return strd
+		return (strd, workerid)
 	atomically $ do
 		pool <- takeTMVar poolv
 		let !pool' = addWorkerPool (ActiveWorker aid workerstage) pool
 		putTMVar poolv pool'
-	(res, workerstrd') <- waitCatch aid >>= \case
-		Right strd -> do
+	
+	(res, workerstrdid) <- waitCatch aid >>= \case
+		Right strdid -> do
 			r <- atomically $ takeTMVar resv
-			return (Right r, strd)
-		Left err -> return (Left err, workerstrd)
+			return (Right r, strdid)
+		Left err -> return (Left err, (workerstrd, workerid))
+
 	atomically $ do
 		pool <- takeTMVar poolv
-		let !pool' = deactivateWorker pool aid workerstrd'
+		let !pool' = deactivateWorker pool aid workerstrdid
 		putTMVar poolv pool'
+	
+	deallocateAnnexWorker workerlimit workerstrd workerid
+
 	return res
+
+data AnnexWorkerLimit
+	= NoWorkerLimit
+	| WorkerLimit (TMVar (Int, WarmWorkers))
+
+-- Workers that are not in use, but that have been warmed up: They have
+-- opened file handles, started helper processes, etc.
+type WarmWorkers = LRU Unique AnnexWorker
+
+mkAnnexWorkerLimit :: Int -> IO AnnexWorkerLimit
+mkAnnexWorkerLimit n = WorkerLimit <$> newTMVarIO (n, emptyLRU)
+
+allocateAnnexWorker
+	:: AnnexWorkerLimit
+	-> STM ((AnnexWorker, Unique), WorkerStage)
+	-> STM ((AnnexWorker, Unique), WorkerStage)
+allocateAnnexWorker NoWorkerLimit a = a
+-- Wait for there to not be too many active annex workers,
+-- and allocate a new one, adding it to the warm LRU cache because
+-- it will start being used, and so warmed up, as soon as it's returned.
+allocateAnnexWorker (WorkerLimit v) a = do
+	(n, warm) <- takeTMVar v
+	if n < 1
+		then retry
+		else do
+			res <- a
+			putTMVar v (n-1, warm)
+			return res
+
+-- Called after allocateAnnexWorker has allocated a worker,
+-- and it is done being used, to deallocate it. 
+deallocateAnnexWorker :: AnnexWorkerLimit -> AnnexWorker -> Unique -> IO ()
+deallocateAnnexWorker NoWorkerLimit _ _ = noop
+-- The worker is added to the warm LRU cache.
+-- When there are too many active annex workers,
+-- pop the oldest one from the warm LRU cache, and chill it.
+deallocateAnnexWorker (WorkerLimit v) worker workerid = do
+	(tochill, warm, n) <- atomically $ do
+		(n, warm) <- takeTMVar v
+		let warm' = addLRU warm workerid worker
+		if n >= 1
+			then do
+				putTMVar v (n+1, warm')
+				return (Nothing, warm', n+1)
+			else do
+				let (warm'', workerstrd) = popLRU warm'
+				putTMVar v (n, warm'')
+				return (workerstrd, warm'', n)
+	-- XXX rmeove this debug
+	debug "P2P.Http" $ show (n, "worker LRU", map (\(u, v) -> (hashUnique u)) $ listLRU warm)
+	case tochill of
+		Nothing -> noop
+		Just tochill' -> do
+			chillAnnexWorker tochill'
+			atomically $ do
+				(n, warm) <- takeTMVar v
+				putTMVar v (n+1, warm)
+
+-- Make an Annex worker no longer be warmed up, by stopping all
+-- helper processes, closing file handles, etc.
+chillAnnexWorker :: (Unique, AnnexWorker) -> IO ()
+chillAnnexWorker (workerid, workerstrd) = do
+	-- This discards the changed state, so the only things it can
+	-- safely do are those that do not alter state.
+	res <- tryNonAsync $ Annex.eval workerstrd $ do
+		fastDebug "P2P.Http" $ "Chilling worker "
+			++ show (hashUnique workerid)
+		-- FIXME: What if the another thread is using the pools
+		-- that get stopped here? Need to check if that is all
+		-- truely safe.
+		stopCoProcesses
+		-- TODO also close open file handles
+	case res of
+		Left ex -> debug "P2P.Http" $ "Chilling worker "
+			++ show (hashUnique workerid) 
+			++ " failed: " ++ show ex
+		Right () -> return ()
 
 handleRequestAnnex :: PerRepoServerState -> Annex a -> IO (Either SomeException a)
 handleRequestAnnex st = handleRequestAnnex' (annexState st) (annexRead st)
@@ -701,9 +794,11 @@ data AnnexActionRunner
 	-- When using this, must enforce bounds first
 	| RequestRunner
 
-annexActionRunner :: AnnexActionRunner -> AnnexWorkerPool -> TMVar Annex.AnnexState -> Annex.AnnexRead -> Annex a -> IO (Either SomeException a)
-annexActionRunner WorkerPoolRunner workerpool _ _ = inAnnexWorker workerpool
-annexActionRunner RequestRunner _ st rd = handleRequestAnnex' st rd
+annexActionRunner :: AnnexActionRunner -> AnnexWorkerLimit -> AnnexWorkerPool -> TMVar Annex.AnnexState -> Annex.AnnexRead -> Annex a -> IO (Either SomeException a)
+annexActionRunner WorkerPoolRunner workerlimit workerpool _ _ =
+	inAnnexWorker workerlimit workerpool
+annexActionRunner RequestRunner _ _ st rd =
+	handleRequestAnnex' st rd
 
 data ProxyConnection = ProxyConnection
 	{ proxyConnectionRemoteUUID :: UUID

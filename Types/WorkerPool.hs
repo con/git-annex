@@ -1,9 +1,11 @@
 {- Worker thread pool.
  -
- - Copyright 2019-2023 Joey Hess <id@joeyh.name>
+ - Copyright 2019-2026 Joey Hess <id@joeyh.name>
  -
  - Licensed under the GNU AGPL version 3 or higher.
  -}
+
+{-# LANGUAGE DeriveFunctor #-}
 
 module Types.WorkerPool where
 
@@ -12,6 +14,8 @@ import Types.Direction
 import Control.Concurrent
 import Control.Concurrent.Async
 import qualified Data.Set as S
+import Data.Unique
+import Control.Monad
 
 -- | Pool of worker threads. 
 data WorkerPool t = WorkerPool
@@ -36,6 +40,7 @@ instance Show (WorkerPool t) where
 data Worker t
 	= IdleWorker WorkerStage
 	| ActiveWorker (Async t) WorkerStage
+	deriving (Functor)
 
 instance Show (Worker t) where
 	show (IdleWorker s) = "IdleWorker " ++ show s
@@ -162,3 +167,17 @@ allIdle pool = all idle (workerList pool)
   where
 	idle (IdleWorker _) = True
 	idle (ActiveWorker _ _) = False
+
+{- Tags each value in a WorkerPool with a Unique identifier. -}
+taggedWorkerPool :: WorkerPool t -> IO (WorkerPool (t, Unique))
+taggedWorkerPool wp = do
+	wl <- forM (workerList wp) $ \w -> do
+		u <- newUnique
+		return (fmap (\v -> (v, u)) w)
+	sl <- zip (spareVals wp)
+		<$> replicateM (length (spareVals wp)) newUnique
+	return $ WorkerPool
+		{ usedStages = usedStages wp
+		, workerList = wl
+		, spareVals = sl
+		} 
