@@ -668,6 +668,8 @@ inAnnexWorker :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Either So
 inAnnexWorker workerlimit poolv annexaction = do
 	((workerstrd, workerid), workerstage) <- atomically $
 		allocateAnnexWorker workerlimit $ waitStartWorkerSlot poolv
+	-- XXX remove this debug
+	debug "P2P.Http" $ show ("allocateAnnexWorker", hashUnique workerid)
 	resv <- newEmptyTMVarIO
 	aid <- async $ do
 		(res, strd) <- Annex.run workerstrd annexaction
@@ -729,6 +731,8 @@ deallocateAnnexWorker NoWorkerLimit _ _ = noop
 -- When there are too many active annex workers,
 -- pop the oldest one from the warm LRU cache, and chill it.
 deallocateAnnexWorker (WorkerLimit v) worker workerid = do
+	-- XXX remove this debug
+	debug "P2P.Http" $ show ("deallocate", hashUnique workerid)
 	(tochill, warm, n) <- atomically $ do
 		(n, warm) <- takeTMVar v
 		let warm' = addLRU warm workerid worker
@@ -739,9 +743,21 @@ deallocateAnnexWorker (WorkerLimit v) worker workerid = do
 			else do
 				let (warm'', workerstrd) = popLRU warm'
 				putTMVar v (n, warm'')
+				-- bug: When multiple threads are all
+				-- running this concurrently, each will add
+				-- and then remove its own worker to the
+				-- LRU, so all workers get chilled,
+				-- even though chilling a single worker
+				-- would be enough.
+				--
+				-- Fix probably involves making
+				-- allowateAnnexWorker add workers
+				-- to the LRU, and handle chilling 
+				-- the LRU worker beforehand, if it needs
+				-- to chill one.
 				return (workerstrd, warm'', n)
 	-- XXX rmeove this debug
-	debug "P2P.Http" $ show (n, "worker LRU", map (\(u, v) -> (hashUnique u)) $ listLRU warm)
+	debug "P2P.Http" $ show ("deallocate", hashUnuique workerid, "done with n:",n, "LRU: ", map (\(u, v) -> (hashUnique u)) $ listLRU warm)
 	case tochill of
 		Nothing -> noop
 		Just tochill' -> do
