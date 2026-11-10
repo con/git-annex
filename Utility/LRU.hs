@@ -5,7 +5,7 @@
  - License: BSD-2-clause
  -}
 
-{-# LANGUAGE StrictData #-}
+{-# LANGUAGE StrictData, BangPatterns #-}
 
 module Utility.LRU (
 	LRU,
