@@ -83,7 +83,7 @@ removeLRU lru k = case M.lookup k (lruMap lru) of
 			Just k' -> setprev Nothing k' m
 
 {- When the key already exists in the LRU, its value is updated, and it is
- - made the most recently added. -}
+ - moved to last. -}
 addLRU :: Ord k => LRU k v -> k -> v -> LRU k v
 addLRU lru k v
 	| lruLast lru == Just k = lru
