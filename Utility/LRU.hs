@@ -5,6 +5,8 @@
  - License: BSD-2-clause
  -}
 
+{-# LANGUAGE StrictData #-}
+
 module Utility.LRU (
 	LRU,
 	emptyLRU,
@@ -17,7 +19,7 @@ module Utility.LRU (
 	prop_LRU_sane,
 ) where
 
-import qualified Data.Map as M
+import qualified Data.Map.Strict as M
 
 data LRU k v = LRU
 	{ lruFirst :: Maybe k
@@ -61,7 +63,7 @@ removeLRU :: Ord k => LRU k v -> k -> LRU k v
 removeLRU lru k = case M.lookup k (lruMap lru) of
 	Nothing -> lru
 	Just linkedval -> 
-		let lru' = addLRU lru k (value linkedval)
+		let !lru' = addLRU lru k (value linkedval)
 		in lru'
 			{ lruLast = case lruLast lru' of
 				Nothing -> Nothing
@@ -91,7 +93,7 @@ addLRU lru k v
 		{ lruFirst = newfirst
 		, lruLast = Just k
 		, lruMap = 
-			let linkedval = LinkedVal
+			let !linkedval = LinkedVal
 				{ value = v
 				, prev = Nothing
 				, next = lruLast lru
@@ -128,7 +130,7 @@ popLRU lru = case lruFirst lru of
 		case M.lookup first (lruMap lru) of
 			Nothing -> (lru, Nothing)
 			Just linkedval ->
-				let lru' = LRU
+				let !lru' = LRU
 					{ lruFirst = prev linkedval
 					, lruLast = case lruLast lru of
 						Just k | k == first -> Nothing
