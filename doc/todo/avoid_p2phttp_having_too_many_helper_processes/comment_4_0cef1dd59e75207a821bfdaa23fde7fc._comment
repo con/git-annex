@@ -1,0 +1,86 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 4"""
+ date="2026-11-10T13:02:49Z"
+ content="""
+This is a harder problem than I thought.
+
+---
+
+There is currently no way to promptly and fully stop all helper processes
+belonging to an AnnexState (or an AnnexRead). Two examples of processes
+that are not stopped by stopCoProcesses are external special remotes and
+external backends.
+
+Similarly, there is no way to close every file handle that might be held
+open by an AnnexState. Eg, a Remote might open a Handle and keep it open.
+
+This could be fixed, but it would be a lot of work and add rarely used code
+paths in multiple Remotes, etc. Which, if they're buggy, shows up as
+p2phttp using more resources than expected for a period of time.
+
+Letting the AnnexState get garbage collected will stop all helper processes
+and close all file handles, but only once the GC runs. If new AnnexStates
+are being spawned faster than they're being forgotten, that could result
+in more helper processes and file handles being allocated than expected.
+So relying on GC doesn't seem feasible, unless the GC is forced to run
+at a particular point (System.Mem.performBlockingMajorGC). Forcing GC
+runs seems dodgy and might hurt performance?
+
+---
+
+When dupState is used to create a pool of AnnexStates that all cooperate
+on one repository, stopCoProcesses on any of them stops the helper 
+processes of all of them. There is no way to only stop 1 of each type of
+helper process. So it's not possible to cool down only one of the
+AnnexStates that has not been recently used, while leaving the rest warmed
+up. This is particularly a problem for the cat-file process, which is
+shared amoung all AnnexStates in the pool, and so can't possibly be stopped
+without cooling down the whole pool. (It might be solvable for the other
+helper processes.)
+
+If dupState is not used and AnnexStates are fully independent,
+then stopCoProcesses can be used to cool one down, but then each time one
+is warmed up it has to restart everything.
+
+---
+
+Here are two approaches that avoid the problems of stopCoProcesses:
+
+1. Bounded pool of PerRepoServerStates. When starting a new one,
+   cool down all the AnnexStates in the pool for the LRU one.
+   (Which stopCoProcesses will do just fine.)
+2. No dupState, so all AnnexStates are fully independent.
+   Before using an AnnexState, if there are too many warmed up,
+   find the LRU one and cool it down.
+
+With #1, there would need to be another option, like
+--max-concurrent-repos. The maximum number of running helper
+processes would be on the order of that times --jobs.
+(Though it can be much less, eg when all traffic is going to a few
+repositories and other repositories are not being used.)
+
+With #2, the total number of running helper processes
+would be on the order of --jobs.
+
+The benefit of #1 is that often the same few repos will get most
+of the traffic. In that case, helper processes get started once
+and used for a long time even when the server is fully loaded.
+
+#1 has an edge case with very bad behavior: A fully loaded server
+is serving several requests for frequently used repos and 1 request
+for a little-used repo comes in. That request needs to block
+until all currently active requests for one of the active repos
+are complete. And for fairness, while that request is blocked,
+no new requests can be started that would keep an active repo active.
+And, once that request is running, new requests for the now inactive
+repo also have to block.
+
+With #2, a fully loaded server will frequently have the 
+LRU AnnexState getting cooled down, and then soon after warmed up
+and needing to restart everything. That will increase CPU load when the
+server is fully loaded. But it won't cause any long-term stalls,
+requests will always be handled in the order received.
+
+So #2 seems better.
+"""]]
