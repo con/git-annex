@@ -657,7 +657,7 @@ withAnnexWorkerPool mconc mcpus a = do
 	maybe noop (setConcurrency . ConcurrencyCmdLine) mconc
 	startConcurrency transferStages $
 		Annex.getState Annex.workers >>= \case
-			Nothing -> giveup "Use -Jn or set annex.jobs to configure the number of worker threads."
+			Nothing -> giveup "Use --jobs or set annex.jobs to configure the number of worker threads."
 			Just wp -> do
 				p <- liftIO $ atomically $ readTMVar wp
 				tp <- liftIO $ taggedWorkerPool p
@@ -668,8 +668,6 @@ inAnnexWorker :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Either So
 inAnnexWorker workerlimit poolv annexaction = do
 	((workerstrd, workerid), workerstage) <-
 		allocateAnnexWorker workerlimit $ waitStartWorkerSlot poolv
-	-- XXX remove this debug
-	debug "P2P.Http" $ show ("allocateAnnexWorker", hashUnique workerid)
 	resv <- newEmptyTMVarIO
 	aid <- async $ do
 		(res, strd) <- Annex.run workerstrd annexaction
@@ -686,9 +684,8 @@ inAnnexWorker workerlimit poolv annexaction = do
 			return (Right r, strdid)
 		Left err -> return (Left err, (workerstrd, workerid))
 	
-	deallocateAnnexWorker workerlimit workerstrd workerid
-
 	atomically $ do
+		deallocateAnnexWorker workerlimit workerstrd workerid
 		pool <- takeTMVar poolv
 		let !pool' = deactivateWorker pool aid workerstrdid
 		putTMVar poolv pool'
@@ -707,14 +704,13 @@ mkAnnexWorkerLimit :: Int -> IO AnnexWorkerLimit
 mkAnnexWorkerLimit n = WorkerLimit <$> newTMVarIO (n, emptyLRU)
 
 -- Allocate a new annex worker.
--- If necessary, first chills the least recently used one first.
+-- If necessary, first chills the least recently used one.
 allocateAnnexWorker
 	:: AnnexWorkerLimit
 	-> STM ((AnnexWorker, Unique), WorkerStage)
 	-> IO ((AnnexWorker, Unique), WorkerStage)
 allocateAnnexWorker NoWorkerLimit a = atomically a
 allocateAnnexWorker (WorkerLimit v) a = do
-	debug "P2P.Http" $ show ("allocate start")
 	r <- atomically $ do
 		(n, warm) <- takeTMVar v
 		if n < 1
@@ -730,9 +726,7 @@ allocateAnnexWorker (WorkerLimit v) a = do
 	case r of
 		Right res -> return res
 		Left tochill -> do
-			debug "P2P.Http" $ show ("allocate needs chilling", hashUnique (fst tochill))
 			chillAnnexWorker tochill
-			debug "P2P.Http" $ show ("allocate done chilling", hashUnique (fst tochill))
 			atomically $ do
 				(n, warm) <- takeTMVar v
 				res@((_, workerid), _) <- a
@@ -741,34 +735,22 @@ allocateAnnexWorker (WorkerLimit v) a = do
 
 -- Called after allocateAnnexWorker has allocated a worker,
 -- and it is done being used.
-deallocateAnnexWorker :: AnnexWorkerLimit -> AnnexWorker -> Unique -> IO ()
+deallocateAnnexWorker :: AnnexWorkerLimit -> AnnexWorker -> Unique -> STM ()
 deallocateAnnexWorker NoWorkerLimit _ _ = noop
--- The worker is added to the warm LRU cache.
 deallocateAnnexWorker (WorkerLimit v) worker workerid = do
-	-- XXX remove this debug
-	debug "P2P.Http" $ show ("deallocate", hashUnique workerid)
-	(warm', n) <- atomically $ do
-		(n, warm) <- takeTMVar v
-		let warm' = addLRU warm workerid worker
-		putTMVar v (n+1, warm')
-		return (warm', n)
-	-- XXX rmeove this debug
-	-- FIXME in tests, this sometimes somehow shows it deallocates,
-	-- leaving the LRU empty. How?! Must be a LRU bug.
-	-- Looks like this: LRU {lruFirst = Nothing, lruLast = Just 17, lruMap = fromList [(17,LinkedVal {value = (), prev = Nothing, next = Nothing})]})
-	let showw = mapLRU hashUnique (\_ -> ())
-	let showw' = map (\_ -> ()) . listLRU
-	debug "P2P.Http" $ show ("deallocate", hashUnique workerid, "done with n:",n, "LRU: ", showw' warm', showw warm')
+	(n, warm) <- takeTMVar v
+	let warm' = addLRU warm workerid worker
+	putTMVar v (n+1, warm')
 
 -- Make an Annex worker no longer be warmed up, by stopping all
 -- helper processes, closing file handles, etc.
 chillAnnexWorker :: (Unique, AnnexWorker) -> IO ()
 chillAnnexWorker (workerid, workerstrd) = do
+	debug "P2P.Http" $ "Chilling worker "
+		++ show (hashUnique workerid)
 	-- This discards the changed state, so the only things it can
 	-- safely do are those that do not alter state.
 	res <- tryNonAsync $ Annex.eval workerstrd $ do
-		fastDebug "P2P.Http" $ "Chilling worker "
-			++ show (hashUnique workerid)
 		-- FIXME: What if the another thread is using the pools
 		-- that get stopped here? Need to check if that is all
 		-- truely safe.

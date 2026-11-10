@@ -34,6 +34,7 @@ import System.PosixCompat.Files (isSymbolicLink)
 import qualified Data.Map as M
 import Data.String
 import Control.Concurrent.STM
+import GHC.Conc
 
 cmd :: Command
 cmd = noMessages $ dontCheck repoExists $ 
@@ -139,9 +140,7 @@ startAnnex o
 			lockedfilesqsem <- liftIO $ 
 				mkLockedFilesQSem (lockedFilesOption o)
 			authenv <- liftIO getAuthEnv
-			workerlimit <- liftIO $ mkAnnexWorkerLimit 3
-			st <- mkServerState o authenv lockedfilesqsem workerlimit 
-				-- XXX use this after testing NoWorkerLimit
+			st <- mkServerState o authenv lockedfilesqsem NoWorkerLimit
 			liftIO $ runServer o st
 		-- Run in a git repository that is not a git-annex repository.
 		, liftIO $ startIO o 
@@ -159,7 +158,12 @@ startIO o
   where
 	mkst authenv oldst = do
 		lockedfilesqsem <- mkLockedFilesQSem (lockedFilesOption o)
-		workerlimit <- mkAnnexWorkerLimit 10 -- XXX parametize to -J or other switch
+		numjobs <- case jobsOption o of
+			Just (Concurrent n) -> pure n
+			Just ConcurrentPerCpu -> getNumProcessors
+			Just NonConcurrent -> pure 1
+			Nothing -> giveup "Use --jobs to configure the number of worker threads."
+		workerlimit <- mkAnnexWorkerLimit numjobs
 		repos <- findRepos o
 		sts <- forM repos $ \r -> do
 			strd <- Annex.new r
