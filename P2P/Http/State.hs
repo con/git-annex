@@ -666,7 +666,7 @@ withAnnexWorkerPool mconc mcpus a = do
 
 inAnnexWorker :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Either SomeException a)
 inAnnexWorker workerlimit poolv annexaction = do
-	((workerstrd, workerid), workerstage) <- atomically $
+	((workerstrd, workerid), workerstage) <-
 		allocateAnnexWorker workerlimit $ waitStartWorkerSlot poolv
 	-- XXX remove this debug
 	debug "P2P.Http" $ show ("allocateAnnexWorker", hashUnique workerid)
@@ -685,13 +685,13 @@ inAnnexWorker workerlimit poolv annexaction = do
 			r <- atomically $ takeTMVar resv
 			return (Right r, strdid)
 		Left err -> return (Left err, (workerstrd, workerid))
+	
+	deallocateAnnexWorker workerlimit workerstrd workerid
 
 	atomically $ do
 		pool <- takeTMVar poolv
 		let !pool' = deactivateWorker pool aid workerstrdid
 		putTMVar poolv pool'
-	
-	deallocateAnnexWorker workerlimit workerstrd workerid
 
 	return res
 
@@ -706,65 +706,59 @@ type WarmWorkers = LRU Unique AnnexWorker
 mkAnnexWorkerLimit :: Int -> IO AnnexWorkerLimit
 mkAnnexWorkerLimit n = WorkerLimit <$> newTMVarIO (n, emptyLRU)
 
+-- Allocate a new annex worker.
+-- If necessary, first chills the least recently used one first.
 allocateAnnexWorker
 	:: AnnexWorkerLimit
 	-> STM ((AnnexWorker, Unique), WorkerStage)
-	-> STM ((AnnexWorker, Unique), WorkerStage)
-allocateAnnexWorker NoWorkerLimit a = a
--- Wait for there to not be too many active annex workers,
--- and allocate a new one, adding it to the warm LRU cache because
--- it will start being used, and so warmed up, as soon as it's returned.
+	-> IO ((AnnexWorker, Unique), WorkerStage)
+allocateAnnexWorker NoWorkerLimit a = atomically a
 allocateAnnexWorker (WorkerLimit v) a = do
-	(n, warm) <- takeTMVar v
-	if n < 1
-		then retry
-		else do
-			res <- a
-			putTMVar v (n-1, warm)
-			return res
+	debug "P2P.Http" $ show ("allocate start")
+	r <- atomically $ do
+		(n, warm) <- takeTMVar v
+		if n < 1
+			then case popLRU warm of
+				(warm', Just tochill) -> do
+					putTMVar v (n-1, warm')
+					return $ Left tochill
+				_ -> retry
+			else do
+				res@((_, workerid), _) <- a
+				putTMVar v (n-1, removeLRU warm workerid)
+				return $ Right res
+	case r of
+		Right res -> return res
+		Left tochill -> do
+			debug "P2P.Http" $ show ("allocate needs chilling", hashUnique (fst tochill))
+			chillAnnexWorker tochill
+			debug "P2P.Http" $ show ("allocate done chilling", hashUnique (fst tochill))
+			atomically $ do
+				(n, warm) <- takeTMVar v
+				res@((_, workerid), _) <- a
+				putTMVar v (n, removeLRU warm workerid)
+				return res
 
 -- Called after allocateAnnexWorker has allocated a worker,
--- and it is done being used, to deallocate it. 
+-- and it is done being used.
 deallocateAnnexWorker :: AnnexWorkerLimit -> AnnexWorker -> Unique -> IO ()
 deallocateAnnexWorker NoWorkerLimit _ _ = noop
 -- The worker is added to the warm LRU cache.
--- When there are too many active annex workers,
--- pop the oldest one from the warm LRU cache, and chill it.
 deallocateAnnexWorker (WorkerLimit v) worker workerid = do
 	-- XXX remove this debug
 	debug "P2P.Http" $ show ("deallocate", hashUnique workerid)
-	(tochill, warm, n) <- atomically $ do
+	(warm', n) <- atomically $ do
 		(n, warm) <- takeTMVar v
 		let warm' = addLRU warm workerid worker
-		if n >= 1
-			then do
-				putTMVar v (n+1, warm')
-				return (Nothing, warm', n+1)
-			else do
-				let (warm'', workerstrd) = popLRU warm'
-				putTMVar v (n, warm'')
-				-- bug: When multiple threads are all
-				-- running this concurrently, each will add
-				-- and then remove its own worker to the
-				-- LRU, so all workers get chilled,
-				-- even though chilling a single worker
-				-- would be enough.
-				--
-				-- Fix probably involves making
-				-- allowateAnnexWorker add workers
-				-- to the LRU, and handle chilling 
-				-- the LRU worker beforehand, if it needs
-				-- to chill one.
-				return (workerstrd, warm'', n)
+		putTMVar v (n+1, warm')
+		return (warm', n)
 	-- XXX rmeove this debug
-	debug "P2P.Http" $ show ("deallocate", hashUnuique workerid, "done with n:",n, "LRU: ", map (\(u, v) -> (hashUnique u)) $ listLRU warm)
-	case tochill of
-		Nothing -> noop
-		Just tochill' -> do
-			chillAnnexWorker tochill'
-			atomically $ do
-				(n, warm) <- takeTMVar v
-				putTMVar v (n+1, warm)
+	-- FIXME in tests, this sometimes somehow shows it deallocates,
+	-- leaving the LRU empty. How?! Must be a LRU bug.
+	-- Looks like this: LRU {lruFirst = Nothing, lruLast = Just 17, lruMap = fromList [(17,LinkedVal {value = (), prev = Nothing, next = Nothing})]})
+	let showw = mapLRU hashUnique (\_ -> ())
+	let showw' = map (\_ -> ()) . listLRU
+	debug "P2P.Http" $ show ("deallocate", hashUnique workerid, "done with n:",n, "LRU: ", showw' warm', showw warm')
 
 -- Make an Annex worker no longer be warmed up, by stopping all
 -- helper processes, closing file handles, etc.

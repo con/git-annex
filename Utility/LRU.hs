@@ -10,7 +10,10 @@ module Utility.LRU (
 	emptyLRU,
 	listLRU,
 	addLRU,
+	removeLRU,
 	popLRU,
+	mapLRU,
+	testLRU,
 	prop_LRU_sane,
 ) where
 
@@ -53,6 +56,26 @@ listLRU lru = case lruFirst lru of
 			case prev linkedval of
 				Just k' -> walk k'
 				Nothing -> []
+
+removeLRU :: Ord k => LRU k v -> k -> LRU k v
+removeLRU lru k = case M.lookup k (lruMap lru) of
+	Nothing -> lru
+	Just linkedval -> 
+		let lru' = addLRU lru k (value linkedval)
+		in lru'
+			{ lruLast = case lruLast lru' of
+				Nothing -> Nothing
+				Just k' -> case M.lookup k' (lruMap lru') of
+					Nothing -> Nothing
+					Just linkedval' -> next linkedval'
+			, lruMap = M.delete k $ unsetprev $ lruMap lru'
+			}
+  where
+	unsetprev m = case M.lookup k m of
+		Nothing -> m
+		Just linkedval -> case next linkedval of
+			Nothing -> m
+			Just k' -> setprev Nothing k' m
 
 {- When the key already exists in the LRU, its value is updated, and it is
  - made the most recently added. -}
@@ -116,8 +139,25 @@ popLRU lru = case lruFirst lru of
 		Just k -> setnext Nothing k m
 		Nothing -> m
 
+mapLRU :: (Ord k, Ord k') => (k -> k') -> (v -> v') -> LRU k v -> LRU k' v'
+mapLRU kf vf lru = LRU
+	{ lruFirst = kf <$> lruFirst lru
+	, lruLast = kf <$> lruLast lru
+	, lruMap = M.fromList $ map go $ M.toList $ lruMap lru
+	}
+  where
+	go (k, linkedval) = 
+		(kf k, linkedval
+			{ value = vf (value linkedval)
+			, prev = kf <$> prev linkedval
+			, next = kf <$> next linkedval
+			})
+
 prop_LRU_sane :: Bool
-prop_LRU_sane = and
+prop_LRU_sane = and testLRU
+
+testLRU :: [Bool]
+testLRU =
 	[ listLRU (fst (popLRU l1)) == []
 	, listLRU l1 == [(1, foo)]
 	, listLRU l2 == [(1, foo), (2, bar)]
@@ -131,6 +171,17 @@ prop_LRU_sane = and
 	, addLRU l3 1 new == addLRU l3no1 1 new
 	, addLRU l3 2 new == addLRU (addLRU l1 3 baz) 2 new
 	, addLRU l3 3 new == addLRU l2 3 new
+	, removeLRU emptyLRU 1 == (emptyLRU :: LRU Int String)
+	, removeLRU l2 3 == l2
+	, removeLRU l3 3 == l2
+	, removeLRU l3 1 == l3no1
+	, removeLRU l3 2 == addLRU l1 3 baz
+	, removeLRU l2 2 == l1
+	, removeLRU l2 1 == l2no1
+	, removeLRU l4 4 == l3
+	, removeLRU l4 2 == addLRU (addLRU l1 3 baz) 4 new
+	, removeLRU l4 3 == addLRU l2 4 new
+	, removeLRU l4 1 == addLRU l3no1 4 new
 	]
   where
 	l1 = addLRU emptyLRU (1 :: Int) foo
