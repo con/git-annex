@@ -1,0 +1,53 @@
+### Please describe the problem in your own words.
+git-annex fails to build with -f-memory because git-annex uses memory even when crypton does not.
+
+### What steps will reproduce the problem?
+Build `git-annex` using -f-memory.
+
+### What version of git-annex are you using? On what operating system?
+* OS: Arch Linux
+* Kernel: Linux 7.2.14-arch1-1
+* GHC: 9.6.7
+* git-annex: 10.20261026
+* crypton: 1.1.0
+* ram: 0.22.1
+* memory: 0.18.0
+
+### Please provide any additional information below.
+
+Two files explicitly import from memory. They are used internally by git-annex and are acknowledged in cac57ad1fef58a4d50fcc9818b5e86edaf1a7cd2.
+
+The introduction of the Memory flag in 51de0b3a617a77c6fe8a5f4b5c9b531eabd42bb0 removes the memory dependency when using crypton 1.1.0. This leads to the observed build failure.
+
+The obvious fix would be to add memory as a dependency even with -f-memory; the resulting inconsistency might require a renaming of the flag.
+
+[[!format sh """
+[ 38 of 763] Compiling Utility.Hash.Types ( Utility/Hash/Types.hs, dist/build/git-annex/git-annex-tmp/Utility/Hash/Types.dyn_o )
+
+Utility/Hash/Types.hs:14:1: error:
+    Could not find module ‘Data.ByteArray.Encoding’
+    Perhaps you meant
+      Data.ByteArray.Encoding (needs flag -package-id memory-0.18.0)
+      Data.ByteArray.Encoding (from ram-0.22.1)
+      Data.ByteArray.Mapping (needs flag -package-id memory-0.18.0)
+   |
+14 | import qualified "memory" Data.ByteArray.Encoding as BAE
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[...]
+[ 83 of 763] Compiling Utility.IPAddress ( Utility/IPAddress.hs, dist/build/git-annex/git-annex-tmp/Utility/IPAddress.dyn_o )
+
+Utility/IPAddress.hs:25:1: error:
+    Could not find module ‘Data.Memory.Endian’
+    Perhaps you meant
+      Data.Memory.Endian (needs flag -package-id memory-0.18.0)
+      Data.Memory.Endian (from ram-0.22.1)
+   |
+25 | import "memory" Data.Memory.Endian
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+# End of transcript or log.
+"""]]
+
+### Have you had any luck using git-annex before? (Sometimes we get tired of reading bug reports all day and a lil' positive end note does wonders)
+
+
