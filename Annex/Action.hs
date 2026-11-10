@@ -39,7 +39,7 @@ verifiedAction a = tryNonAsync a >>= \case
 		warning (UnquotedString (show e))
 		return (False, UnVerified)
 
-{- Rn all cleanup actions, save all state, stop all long-running child
+{- Rn all cleanup actions, save all state, stop long-running child
  - processes.
  -
  - This can be run repeatedly with other Annex actions run in between,
@@ -59,7 +59,10 @@ quiesce nocommit = do
 	stopCoProcesses
 	Database.Keys.closeDb
 
-{- Stops all long-running child processes, including git query processes. -}
+{- Stops long-running child processes, including git query processes. 
+ -
+ - Does not stop processes belonging to Remotes or Backends.
+ -}
 stopCoProcesses :: Annex ()
 stopCoProcesses = do
 	catFileStop
