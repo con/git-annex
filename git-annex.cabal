@@ -325,7 +325,7 @@ Executable git-annex
   if flag(Memory)
     Build-Depends: memory, crypton (< 1.1.0)
   else
-    Build-Depends: ram, crypton (>= 1.1.0)
+    Build-Depends: memory, ram, crypton (>= 1.1.0)
 
   -- Fully optimize for production.
   if flag(Production)

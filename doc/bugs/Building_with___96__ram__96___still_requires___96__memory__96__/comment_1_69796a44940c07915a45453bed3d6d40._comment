@@ -1,0 +1,9 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 1"""
+ date="2026-11-10T19:44:10Z"
+ content="""
+The flag is documented as "Build with memory rather than ram",
+so I don't see a problem with git-annex depending on memory as well as ram
+when the flag is not set. So I've made that change.
+"""]]
