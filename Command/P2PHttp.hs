@@ -248,7 +248,7 @@ runServer o mst = go `finally` serverShutdownCleanup mst
 
 mkServerState :: Options -> M.Map Auth P2P.ServerMode -> LockedFilesQSem -> AnnexWorkerLimit -> Annex P2PHttpServerState
 mkServerState o authenv lockedfilesqsem workerlimit = 
-	withAnnexWorkerPool (jobsOption o) (cpusOption o) $
+	withAnnexWorkerPool (jobsOption o) (cpusOption o) workerlimit $
 		mkP2PHttpServerState
 			(mkGetServerMode authenv o)
 			return

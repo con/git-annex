@@ -31,7 +31,7 @@ import Annex.Action
 import Annex.Concurrent
 import Types.Concurrency
 import Types.Cluster
-import CmdLine.Action (startConcurrency)
+import CmdLine.Action (startConcurrency, raiseCapabilitiesForJobs)
 import Utility.ThreadScheduler
 import Utility.HumanTime
 import Logs.Proxy
@@ -41,6 +41,7 @@ import qualified Annex.Branch
 import qualified P2P.Proxy as Proxy
 import qualified Types.Remote as Remote
 import Remote.List
+import Messages.Concurrent
 import Utility.LRU
 
 import Servant hiding (Unique)
@@ -651,18 +652,42 @@ dropLock lckid st = do
 		Nothing -> return ()
 		Just locker -> wait (lockerThread locker)
 
-withAnnexWorkerPool :: Maybe Concurrency -> Maybe Cpus -> (AnnexWorkerPool -> Annex a) -> Annex a
-withAnnexWorkerPool mconc mcpus a = do
+withAnnexWorkerPool
+	:: Maybe Concurrency
+	-> Maybe Cpus
+	-> AnnexWorkerLimit
+	-> (AnnexWorkerPool -> Annex a)
+	-> Annex a
+withAnnexWorkerPool mconc mcpus workerlimit a = do
 	maybe noop setCpus mcpus
-	maybe noop (setConcurrency . ConcurrencyCmdLine) mconc
-	startConcurrency transferStages $
-		Annex.getState Annex.workers >>= \case
-			Nothing -> giveup "Use --jobs or set annex.jobs to configure the number of worker threads."
-			Just wp -> do
-				p <- liftIO $ atomically $ readTMVar wp
-				tp <- liftIO $ taggedWorkerPool p
-				awp <- liftIO $ newTMVarIO tp
-				a awp
+	case workerlimit of
+		NoWorkerLimit -> do
+			maybe noop (setConcurrency . ConcurrencyCmdLine) mconc
+			startConcurrency transferStages $
+				Annex.getState Annex.workers >>= \case
+					Nothing -> giveup "Use --jobs or set annex.jobs to configure the number of worker threads."
+					Just wp -> go =<< liftIO (atomically $ readTMVar wp)
+		{- chillAnnexWorker calls stopCoProcesses, which,
+		 - stops helper processes that are in resource pools
+		 - set up by dupState and shared with other AnnexWorkers.
+		 - That is not desirable, and to avoid it happening here,
+		 - the state is copied rather than using startConcurrency.
+		 -}
+		WorkerLimit workerlimitvar -> do
+			n <- liftIO $ atomically $ fst <$> readTMVar workerlimitvar
+			raiseCapabilitiesForJobs n
+			withConcurrentOutput $ do
+				-- Stop any helper processes, to avoid
+				-- all copies sharing them.
+				stopCoProcesses
+				st <- Annex.getState id
+				rd <- Annex.getRead id
+				go $ allocateWorkerPool (st, rd) (max n 1) transferStages
+  where
+	go p = do
+		tp <- liftIO $ taggedWorkerPool p
+		awp <- liftIO $ newTMVarIO tp
+		a awp
 
 inAnnexWorker :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Either SomeException a)
 inAnnexWorker workerlimit poolv annexaction = do
@@ -751,9 +776,6 @@ chillAnnexWorker (workerid, workerstrd) = do
 	-- This discards the changed state, so the only things it can
 	-- safely do are those that do not alter state.
 	res <- tryNonAsync $ Annex.eval workerstrd $ do
-		-- FIXME: What if the another thread is using the pools
-		-- that get stopped here? Need to check if that is all
-		-- truely safe.
 		stopCoProcesses
 		-- TODO also close open file handles
 	case res of
