@@ -67,7 +67,7 @@ The benefit of #1 is that often the same few repos will get most
 of the traffic. In that case, helper processes get started once
 and used for a long time even when the server is fully loaded.
 
-#1 has an edge case with very bad behavior: A fully loaded server
+But #1 has an edge case with very bad behavior: A fully loaded server
 is serving several requests for frequently used repos and 1 request
 for a little-used repo comes in. That request needs to block
 until all currently active requests for one of the active repos
