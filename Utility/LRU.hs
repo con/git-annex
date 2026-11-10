@@ -68,6 +68,9 @@ removeLRU lru k = case M.lookup k (lruMap lru) of
 				Just k' -> case M.lookup k' (lruMap lru') of
 					Nothing -> Nothing
 					Just linkedval' -> next linkedval'
+			, lruFirst = case lruFirst lru' of
+				Just k' | k' /= k -> Just k'
+				_ -> Nothing
 			, lruMap = M.delete k $ unsetprev $ lruMap lru'
 			}
   where
@@ -172,6 +175,7 @@ testLRU =
 	, addLRU l3 2 new == addLRU (addLRU l1 3 baz) 2 new
 	, addLRU l3 3 new == addLRU l2 3 new
 	, removeLRU emptyLRU 1 == (emptyLRU :: LRU Int String)
+	, removeLRU l1 1 == emptyLRU
 	, removeLRU l2 3 == l2
 	, removeLRU l3 3 == l2
 	, removeLRU l3 1 == l3no1
