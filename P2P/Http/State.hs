@@ -667,7 +667,7 @@ withAnnexWorkerPool mconc mcpus workerlimit a = do
 				Annex.getState Annex.workers >>= \case
 					Nothing -> giveup "Use --jobs or set annex.jobs to configure the number of worker threads."
 					Just wp -> go =<< liftIO (atomically $ readTMVar wp)
-		{- chillAnnexWorker calls stopCoProcesses, which,
+		{- quiesceAnnexWorker calls stopCoProcesses, which,
 		 - stops helper processes that are in resource pools
 		 - set up by dupState and shared with other AnnexWorkers.
 		 - That is not desirable, and to avoid it happening here,
@@ -677,9 +677,9 @@ withAnnexWorkerPool mconc mcpus workerlimit a = do
 			n <- liftIO $ atomically $ fst <$> readTMVar workerlimitvar
 			raiseCapabilitiesForJobs n
 			withConcurrentOutput $ do
-				-- Stop any helper processes, to avoid
-				-- all copies sharing them.
-				stopCoProcesses
+				-- quiesce to avoid copies sharing helper
+				-- processes, handles, etc
+				quiesce False
 				st <- Annex.getState id
 				rd <- Annex.getRead id
 				go $ allocateWorkerPool (st, rd) (max n 1) transferStages
@@ -729,7 +729,7 @@ mkAnnexWorkerLimit :: Int -> IO AnnexWorkerLimit
 mkAnnexWorkerLimit n = WorkerLimit <$> newTMVarIO (n, emptyLRU)
 
 -- Allocate a new annex worker.
--- If necessary, first chills the least recently used one.
+-- If necessary, first quiesces the least recently used one.
 allocateAnnexWorker
 	:: AnnexWorkerLimit
 	-> STM ((AnnexWorker, Unique), WorkerStage)
@@ -740,9 +740,9 @@ allocateAnnexWorker (WorkerLimit v) a = do
 		(n, warm) <- takeTMVar v
 		if n < 1
 			then case popLRU warm of
-				(warm', Just tochill) -> do
+				(warm', Just toquiesce) -> do
 					putTMVar v (n-1, warm')
-					return $ Left tochill
+					return $ Left toquiesce
 				_ -> retry
 			else do
 				res@((_, workerid), _) <- a
@@ -750,8 +750,8 @@ allocateAnnexWorker (WorkerLimit v) a = do
 				return $ Right res
 	case r of
 		Right res -> return res
-		Left tochill -> do
-			chillAnnexWorker tochill
+		Left toquiesce -> do
+			quiesceAnnexWorker toquiesce
 			atomically $ do
 				(n, warm) <- takeTMVar v
 				res@((_, workerid), _) <- a
@@ -769,17 +769,16 @@ deallocateAnnexWorker (WorkerLimit v) worker workerid = do
 
 -- Make an Annex worker no longer be warmed up, by stopping all
 -- helper processes, closing file handles, etc.
-chillAnnexWorker :: (Unique, AnnexWorker) -> IO ()
-chillAnnexWorker (workerid, workerstrd) = do
-	debug "P2P.Http" $ "Chilling worker "
+quiesceAnnexWorker :: (Unique, AnnexWorker) -> IO ()
+quiesceAnnexWorker (workerid, workerstrd) = do
+	debug "P2P.Http" $ "quiesceing worker "
 		++ show (hashUnique workerid)
 	-- This discards the changed state, so the only things it can
 	-- safely do are those that do not alter state.
-	res <- tryNonAsync $ Annex.eval workerstrd $ do
-		stopCoProcesses
-		-- TODO also close open file handles
+	res <- tryNonAsync $ Annex.eval workerstrd $
+		quiesce True 
 	case res of
-		Left ex -> debug "P2P.Http" $ "Chilling worker "
+		Left ex -> debug "P2P.Http" $ "quiesceing worker "
 			++ show (hashUnique workerid) 
 			++ " failed: " ++ show ex
 		Right () -> return ()
