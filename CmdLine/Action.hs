@@ -244,10 +244,8 @@ startConcurrency usedstages a = do
 			usegitcfg
 			goconcurrentpercpu
   where
-	goconcurrent n = do
-		raiseCapabilitiesForJobs n
-		withConcurrentOutput (goconcurrent' n)
-	goconcurrent' n = bracket_ (setup n) cleanup a
+	goconcurrent n = prepareConcurrency n $
+		bracket_ (setup n) cleanup a
 
 	goconcurrentpercpu = goconcurrent =<< liftIO getNumProcessors
 
@@ -263,6 +261,11 @@ startConcurrency usedstages a = do
 		rd <- Annex.getRead id
 		liftIO $ atomically $ putTMVar tv $
 			allocateWorkerPool (st, rd) (max n 1) usedstages
+
+prepareConcurrency :: Int -> Annex a -> Annex a
+prepareConcurrency n a = do
+	raiseCapabilitiesForJobs n
+	withConcurrentOutput a
 
 -- Make sure that some expensive actions have been done before
 -- starting threads. This way the state has them already run,

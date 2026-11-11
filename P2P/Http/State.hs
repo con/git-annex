@@ -31,7 +31,7 @@ import Annex.Action
 import Annex.Concurrent
 import Types.Concurrency
 import Types.Cluster
-import CmdLine.Action (startConcurrency, raiseCapabilitiesForJobs)
+import CmdLine.Action (startConcurrency, prepareConcurrency)
 import Utility.ThreadScheduler
 import Utility.HumanTime
 import Logs.Proxy
@@ -41,7 +41,6 @@ import qualified Annex.Branch
 import qualified P2P.Proxy as Proxy
 import qualified Types.Remote as Remote
 import Remote.List
-import Messages.Concurrent
 import Utility.LRU
 
 import Servant hiding (Unique)
@@ -675,8 +674,7 @@ withAnnexWorkerPool mconc mcpus workerlimit a = do
 		 -}
 		WorkerLimit workerlimitvar -> do
 			n <- liftIO $ atomically $ fst <$> readTMVar workerlimitvar
-			raiseCapabilitiesForJobs n
-			withConcurrentOutput $ do
+			prepareConcurrency n $ do
 				-- quiesce to avoid copies sharing helper
 				-- processes, handles, etc
 				quiesce False
