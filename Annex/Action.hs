@@ -1,6 +1,6 @@
 {- git-annex actions
  -
- - Copyright 2010-2022 Joey Hess <id@joeyh.name>
+ - Copyright 2010-2026 Joey Hess <id@joeyh.name>
  -
  - Licensed under the GNU AGPL version 3 or higher.
  -}
@@ -23,6 +23,7 @@ import Annex.HashObject
 import Annex.CheckIgnore
 import Annex.TransferrerPool
 import qualified Database.Keys
+import qualified Database.RepoSize
 
 {- Runs an action that may throw exceptions, catching and displaying them. -}
 action :: Annex () -> Annex Bool
@@ -40,7 +41,7 @@ verifiedAction a = tryNonAsync a >>= \case
 		return (False, UnVerified)
 
 {- Rn all cleanup actions, save all state, stop all long-running child
- - processes.
+ - processes, close all file handles.
  -
  - This can be run repeatedly with other Annex actions run in between,
  - but usually it is run only once at the end.
@@ -58,6 +59,7 @@ quiesce nocommit = do
 	saveState nocommit
 	stopCoProcesses
 	Database.Keys.closeDb
+	Database.RepoSize.closeDb
 
 {- Stops all long-running child processes, including git query processes. -}
 stopCoProcesses :: Annex ()

@@ -130,9 +130,12 @@ isOpenDb :: RepoSizeHandle -> Bool
 isOpenDb (RepoSizeHandle (Just _) _) = True
 isOpenDb (RepoSizeHandle Nothing _) = False
 
-closeDb :: RepoSizeHandle -> Annex ()
-closeDb (RepoSizeHandle (Just h) _) = liftIO $ H.closeDb h
-closeDb (RepoSizeHandle Nothing _) = noop
+closeDb :: Annex ()
+closeDb = Annex.getState Annex.reposizehandle >>= maybe noop closeDb'
+
+closeDb' :: RepoSizeHandle -> Annex ()
+closeDb' (RepoSizeHandle (Just h) _) = liftIO $ H.closeDb h
+closeDb' (RepoSizeHandle Nothing _) = noop
 
 -- This does not prevent another process that has already 
 -- opened the db from changing it at the same time.
@@ -443,4 +446,4 @@ removeUUID u = do
 				[ RecentChangesRepo ==. u
 				]
 		_ -> noop
-	closeDb db
+	closeDb' db
