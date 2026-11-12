@@ -56,6 +56,29 @@ jobs:
             echo "C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include:${C_INCLUDE_PATH:-}"
           } >> "$GITHUB_ENV"
 
+      # Since the 20261104 runner image some bundled program links to
+      # Homebrew's libcurl, and through it to libbrotlidec, which refers to
+      # @rpath/libbrotlicommon.1.dylib.  git-annex's Build/OSXMkLibs.hs cannot
+      # expand @rpath of a library (only of an executable) and fails with
+      # "cp: ./@rpath/libbrotlicommon.1.dylib: No such file or directory".
+      # Make such references absolute.
+      - name: Make Homebrew's brotli libraries refer to each other by absolute path
+        run: |
+          if brotli="$(brew --prefix brotli 2>/dev/null)" && [ -d "$brotli/lib" ]; then
+            for lib in "$brotli"/lib/libbrotli{dec,enc}.1.dylib; do
+              [ -f "$lib" ] || continue
+              otool -L "$lib"
+              if otool -L "$lib" | grep -q '@rpath/libbrotlicommon'; then
+                chmod u+w "$lib"
+                install_name_tool \
+                  -change @rpath/libbrotlicommon.1.dylib "$brotli/lib/libbrotlicommon.1.dylib" \
+                  "$lib"
+                codesign --force --sign - "$lib"
+                otool -L "$lib"
+              fi
+            done
+          fi
+
       - name: Setup Haskell
         uses: haskell-actions/setup@v2
         with:
