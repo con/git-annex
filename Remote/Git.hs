@@ -1004,6 +1004,7 @@ listProxied proxies rs = concat <$> mapM go rs
 			let c = adduuid (configRepoUUID renamedr) $
 				addurl $
 				addproxiedby $
+				addverified $
 				adjustclusternode clusters $
 				inheritconfigs $ Git.fullconfig r'
 			in r'
@@ -1024,6 +1025,11 @@ listProxied proxies rs = concat <$> mapM go rs
 				(Git.ConfigValue $ fromUUID u)
 			Nothing -> id
 		
+		addverified = case formatRemoteConfigVerification RemoteConfigVerified of
+			Just s -> addremoteannexfield VerifiedField
+				(Git.ConfigValue $ encodeBS s)
+			Nothing -> id
+
 		-- A node of a cluster that is being proxied along with
 		-- that cluster does not need to be synced with
 		-- by default, because syncing with the cluster will

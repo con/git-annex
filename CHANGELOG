@@ -19,6 +19,8 @@ git-annex (10.20261105) UNRELEASED; urgency=medium
     location.
   * NoLLMDependencies: Update for network and http-semantics. 
   * Fix build when the Memory build flag is disabled.
+  * Don't prompt for verification of proxied remotes, which is not
+    necessary and didn't work.
 
  -- Joey Hess <id@joeyh.name>  Mon, 26 Oct 2026 18:34:32 -0400
 
