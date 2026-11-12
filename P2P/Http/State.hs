@@ -334,7 +334,7 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 		(acquireconn reqv annexstate annexread)
 		workerpool annexstate annexread getservermode lockedfilesqsem
 	asynccommitter <- liftIO $ async $
-		branchCommitter st endv
+		branchCommitter st endv workerlimit
 	let endit = do
 		liftIO $ atomically $ putTMVar endv ()
 		liftIO $ wait asyncservicer
@@ -665,18 +665,19 @@ withAnnexWorkerPool mconc mcpus workerlimit a = do
 			Nothing -> giveup "Use --jobs or set annex.jobs to configure the number of worker threads."
 			Just wpv -> go wpv nworkers
   where
-	go wpv nworkers = do
-		p <- case workerlimit of
-			NoWorkerLimit -> liftIO $ atomically $ readTMVar wpv
-			WorkerLimit { makeNewWorker = Just maker } -> do
-				liftIO $ setAnnexWorkerLimit workerlimit nworkers
-				liftIO $ allocateWorkerPoolM maker nworkers stages
-			WorkerLimit { makeNewWorker = Nothing } ->
-				error "internal"
-		tp <- liftIO $ taggedWorkerPool p
+	stages = transferStages
+	go wpv nworkers = case workerlimit of
+		NoWorkerLimit -> use $ atomically $ readTMVar wpv
+		WorkerLimit { makeNewWorker = Just maker } -> do
+			liftIO $ setAnnexWorkerLimit workerlimit nworkers
+			use (allocateWorkerPoolM maker nworkers stages)
+				`finally` quiesce True
+		WorkerLimit { makeNewWorker = Nothing } ->
+			error "internal"
+	use mkp = do
+		tp <- liftIO $ taggedWorkerPool =<< mkp
 		awp <- liftIO $ newTMVarIO tp
 		a awp
-	stages = transferStages
 
 inAnnexWorker :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Either SomeException a)
 inAnnexWorker workerlimit poolv annexaction = do
@@ -796,6 +797,17 @@ quiesceAnnexWorker (workerid, workerstrd) = do
 			++ show (hashUnique workerid) 
 			++ " failed: " ++ show ex
 		Right () -> return ()
+
+-- When there is a WorkerLimit, handleRequestAnnex may warm up
+-- an Annex state, starting helper processes, opening file handles etc.
+-- Quiesce it here to avoid one such Annex state per served repository
+-- remaining warmed up.
+--
+-- With NoWorkerLimit, there is no need to quiesce here, because there
+-- is only one such Annex state.
+quiesceRequestAnnex :: AnnexWorkerLimit -> Annex ()
+quiesceRequestAnnex NoWorkerLimit = noop
+quiesceRequestAnnex (WorkerLimit {}) = quiesce True
 
 handleRequestAnnex :: PerRepoServerState -> Annex a -> IO (Either SomeException a)
 handleRequestAnnex st = handleRequestAnnex' (annexState st) (annexRead st)
@@ -964,8 +976,8 @@ changesBranch mstv su a = liftIO (getPerRepoServerState mstv su) >>= \case
 	send st b = liftIO $ atomically $ 
 		putTMVar (branchChangesInProgress st) b
 
-branchCommitter :: PerRepoServerState -> TMVar () -> IO ()
-branchCommitter st endv = do
+branchCommitter :: PerRepoServerState -> TMVar () -> AnnexWorkerLimit -> IO ()
+branchCommitter st endv workerlimit = do
 	idlev <- newEmptyTMVarIO
 	void $ async $ committer idlev
 	go idlev (0 :: Integer)
@@ -996,10 +1008,12 @@ branchCommitter st endv = do
 				-- Once it's been idle for a second,
 				-- commit the journalled changes.
 				atomically (tryTakeTMVar idlev) >>= \case
-					Just () ->
-						void $ handleRequestAnnex st $
-							Annex.Branch.commit =<< Annex.Branch.commitMessage
+					Just () -> commit
 					Nothing -> noop
 				committer idlev
 			Left () -> return ()
 
+	commit =
+		void $ handleRequestAnnex st $ do
+			Annex.Branch.commit =<< Annex.Branch.commitMessage
+			quiesceRequestAnnex workerlimit
