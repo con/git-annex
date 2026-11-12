@@ -1,4 +1,4 @@
-git-annex (10.20261105) UNRELEASED; urgency=medium
+git-annex (10.20261113) upstream; urgency=medium
 
   * The Linux arm64-ancient build has reached end of security support 
     and will be removed after this release. Android users are recommended
@@ -22,7 +22,7 @@ git-annex (10.20261105) UNRELEASED; urgency=medium
   * Don't prompt for verification of proxied remotes, which is not
     necessary and didn't work.
 
- -- Joey Hess <id@joeyh.name>  Mon, 26 Oct 2026 18:34:32 -0400
+ -- Joey Hess <id@joeyh.name>  Thu, 12 Nov 2026 15:51:18 -0400
 
 git-annex (10.20261026) upstream; urgency=high
 
