@@ -18,6 +18,8 @@ git-annex (10.20261105) UNRELEASED; urgency=medium
   * Allow the MAGIC environment variable to override the bundled magic file
     location.
   * NoLLMDependencies: Update for network and http-semantics. 
+  * p2phttp: When --directory is used to serve a large number of
+    repositories, avoid using too many helper processes and open files.
 
  -- Joey Hess <id@joeyh.name>  Mon, 26 Oct 2026 18:34:32 -0400
 
