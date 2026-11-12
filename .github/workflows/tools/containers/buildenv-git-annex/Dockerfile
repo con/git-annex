@@ -45,6 +45,11 @@ RUN set -ex; \
     apt-get build-dep -y -q git-annex; \
     # git-annex >= 10.20261005 Build-Depends on ram, Debian's git-annex not (yet)
     apt-get install -y libghc-ram-dev; \
+    # git-annex >= 10.20261105 requires Botan 3 (C++ library; its Haskell
+    # bindings are built below).  It is in upstream's debian/control
+    # Build-Depends, but not in those of Debian's git-annex (yet)
+    apt-get install -y libbotan-3-dev pkgconf; \
+    pkg-config --modversion botan-3; \
     # Needed additional tools etc
     apt-get install -y devscripts quilt locales; \
     # Some helper utilities just in case
@@ -93,3 +98,32 @@ RUN set -ex; \
     runghc Setup.hs install; \
     ghc-pkg field libmagic version; \
     cd /; rm -rf /tmp/libmagic*
+
+# git-annex unconditionally depends on the Haskell botan-low (< 0.3) binding
+# since upstream 023d3a32d8 (2026-11-05, "Botan is enabled by default; removed
+# build flag"), which Debian does not package yet (libghc-botan-low-dev is
+# commented out in upstream's debian/control).  Versions match upstream's
+# stack.yaml.  botan-bindings locates libbotan-3-dev via pkg-config.
+# Drop once Debian provides libghc-botan-low-dev.
+ARG BOTAN_BINDINGS_VERSION=0.3.0.0
+ARG BOTAN_BINDINGS_SHA256=b6c6ab21cdcb71428f812599fb17063d618ed9ff4e17a4961c1ea7997fef258c
+ARG BOTAN_LOW_VERSION=0.2.0.1
+ARG BOTAN_LOW_SHA256=c82f8624334ee7c4c8735f7b3209ffbeaa6de1f63762084b8497e61a4423b319
+RUN set -ex; \
+    cd /tmp; \
+    for spec in \
+        "botan-bindings ${BOTAN_BINDINGS_VERSION} ${BOTAN_BINDINGS_SHA256}" \
+        "botan-low ${BOTAN_LOW_VERSION} ${BOTAN_LOW_SHA256}" \
+    ; do \
+        set -- $spec; \
+        curl -fsSL -o "$1.tar.gz" "https://hackage.haskell.org/package/$1-$2/$1-$2.tar.gz"; \
+        echo "$3  $1.tar.gz" | sha256sum -c -; \
+        tar xzf "$1.tar.gz"; \
+        ( cd "$1-$2"; \
+          printf 'import Distribution.Simple\nmain = defaultMain\n' > Setup.hs; \
+          runghc Setup.hs configure --global --prefix=/usr/local; \
+          runghc Setup.hs build; \
+          runghc Setup.hs install ); \
+        ghc-pkg field "$1" version; \
+        rm -rf "/tmp/$1"*; \
+    done
