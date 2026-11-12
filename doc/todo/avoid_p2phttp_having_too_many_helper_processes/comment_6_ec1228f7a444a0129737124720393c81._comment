@@ -3,8 +3,9 @@
  subject="""comment 6"""
  date="2026-11-12T18:59:57Z"
  content="""
-The p2phttpchill branch has this implemented, except for proxied remotes which
-get --proxyconnections connections per repository.
+Got this implemented, except for proxied remotes which
+get --proxyconnections connections per repository. Leaving the todo open
+for that.
 
 It may be that the GC hack is not actually needed to solve that. (Whew!)
 
