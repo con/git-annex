@@ -334,7 +334,7 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 		(acquireconn reqv annexstate annexread)
 		workerpool annexstate annexread getservermode lockedfilesqsem
 	asynccommitter <- liftIO $ async $
-		branchCommitter st endv workerlimit
+		branchCommitter st endv workerlimit workerpool
 	let endit = do
 		liftIO $ atomically $ putTMVar endv ()
 		liftIO $ wait asyncservicer
@@ -680,9 +680,23 @@ withAnnexWorkerPool mconc mcpus workerlimit a = do
 		a awp
 
 inAnnexWorker :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Either SomeException a)
-inAnnexWorker workerlimit poolv annexaction = do
-	((workerstrd, workerid), workerstage) <-
-		allocateAnnexWorker workerlimit $ waitStartWorkerSlot poolv
+inAnnexWorker workerlimit poolv annexaction =
+	allocateAnnexWorker workerlimit (waitStartWorkerSlot poolv)
+		>>= inAnnexWorker' workerlimit poolv annexaction
+
+inAnnexWorkerNonBlocking :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Maybe (Either SomeException a))
+inAnnexWorkerNonBlocking workerlimit poolv annexaction =
+	allocateAnnexWorkerNonBlocking workerlimit (waitStartWorkerSlot poolv) >>= \case
+		Nothing -> return Nothing
+		Just v -> Just <$> inAnnexWorker' workerlimit poolv annexaction v
+
+inAnnexWorker'
+	:: AnnexWorkerLimit
+	-> AnnexWorkerPool
+	-> Annex a
+	-> ((AnnexWorker, Unique), WorkerStage)
+	-> IO (Either SomeException a)
+inAnnexWorker' workerlimit poolv annexaction ((workerstrd, workerid), workerstage) = do
 	resv <- newEmptyTMVarIO
 	aid <- async $ do
 		(res, strd) <- Annex.run workerstrd annexaction
@@ -739,39 +753,76 @@ setAnnexWorkerLimit WorkerLimit { workerLimit = v } nworkers =
 		putTMVar v (nworkers, lru)
 setAnnexWorkerLimit NoWorkerLimit _ = noop
 
--- Allocate a new annex worker.
--- If necessary, first quiesces the least recently used one.
+{- Allocate a new annex worker.
+ - If necessary, first quiesces the least recently used one.
+ -
+ - Blocks when the server is too busy.
+ -}
 allocateAnnexWorker
 	:: AnnexWorkerLimit
 	-> STM ((AnnexWorker, Unique), WorkerStage)
 	-> IO ((AnnexWorker, Unique), WorkerStage)
-allocateAnnexWorker NoWorkerLimit a = atomically a
-allocateAnnexWorker (WorkerLimit { workerLimit = v }) a = do
-	r <- atomically $ do
-		(n, warm) <- takeTMVar v
-		if n < 1
-			then case popLRU warm of
-				(warm', Just toquiesce) -> do
-					putTMVar v (n-1, warm')
-					return $ Left toquiesce
-				_ -> retry
-			else do
-				res@((_, workerid), _) <- a
-				putTMVar v (n-1, removeLRU warm workerid)
-				return $ Right res
+allocateAnnexWorker workerlimit a = 
+	atomically (allocateAnnexWorker' workerlimit a)
+		>>= allocatedAnnexWorker workerlimit a
+
+allocateAnnexWorkerNonBlocking
+	:: AnnexWorkerLimit
+	-> STM ((AnnexWorker, Unique), WorkerStage)
+	-> IO (Maybe ((AnnexWorker, Unique), WorkerStage))
+allocateAnnexWorkerNonBlocking workerlimit a = do
+	r <- atomically $
+		(Just <$> allocateAnnexWorker' workerlimit a)
+			`orElse`
+		return Nothing
+	case r of
+		Nothing -> return Nothing
+		Just r' -> Just <$> allocatedAnnexWorker workerlimit a r'
+
+allocateAnnexWorker'
+	:: AnnexWorkerLimit
+	-> STM ((AnnexWorker, Unique), WorkerStage)
+	-> STM (Either (Unique, AnnexWorker) ((AnnexWorker, Unique), WorkerStage))
+allocateAnnexWorker' NoWorkerLimit a = Right <$> a
+allocateAnnexWorker' (WorkerLimit { workerLimit = v }) a = do
+	(n, warm) <- takeTMVar v
+	if n < 1
+		then case popLRU warm of
+			(warm', Just toquiesce) -> do
+				putTMVar v (n-1, warm')
+				return $ Left toquiesce
+			_ -> retry
+		else do
+			res@((_, workerid), _) <- a
+			putTMVar v (n-1, removeLRU warm workerid)
+			return $ Right res
+
+allocatedAnnexWorker
+	:: AnnexWorkerLimit
+	-> STM ((AnnexWorker, Unique), WorkerStage)
+	-> Either (Unique, AnnexWorker) ((AnnexWorker, Unique), WorkerStage)
+	-> IO ((AnnexWorker, Unique), WorkerStage)
+allocatedAnnexWorker workerlimit a r =
 	observe reportworkerid $ case r of
 		Right res -> return res
 		Left toquiesce -> do
 			quiesceAnnexWorker toquiesce
-			atomically $ do
-				(n, warm) <- takeTMVar v
-				res@((_, workerid), _) <- a
-				putTMVar v (n, removeLRU warm workerid)
-				return res
+			atomically $ postQueusceAnnexWorker workerlimit a
   where
 	reportworkerid ((_, workerid), _) =
 		debug "P2P.Http" $ "using worker "
 			++ show (hashUnique workerid)
+
+postQueusceAnnexWorker
+	:: AnnexWorkerLimit
+	-> STM ((AnnexWorker, Unique), WorkerStage)
+	-> STM ((AnnexWorker, Unique), WorkerStage)
+postQueusceAnnexWorker (WorkerLimit { workerLimit = v }) a = do
+	(n, warm) <- takeTMVar v
+	res@((_, workerid), _) <- a
+	putTMVar v (n, removeLRU warm workerid)
+	return res
+postQueusceAnnexWorker NoWorkerLimit a = a
 
 -- Called after allocateAnnexWorker has allocated a worker,
 -- and it is done being used.
@@ -976,8 +1027,8 @@ changesBranch mstv su a = liftIO (getPerRepoServerState mstv su) >>= \case
 	send st b = liftIO $ atomically $ 
 		putTMVar (branchChangesInProgress st) b
 
-branchCommitter :: PerRepoServerState -> TMVar () -> AnnexWorkerLimit -> IO ()
-branchCommitter st endv workerlimit = do
+branchCommitter :: PerRepoServerState -> TMVar () -> AnnexWorkerLimit -> AnnexWorkerPool -> IO ()
+branchCommitter st endv workerlimit workerpool = do
 	idlev <- newEmptyTMVarIO
 	void $ async $ committer idlev
 	go idlev (0 :: Integer)
@@ -1008,12 +1059,22 @@ branchCommitter st endv workerlimit = do
 				-- Once it's been idle for a second,
 				-- commit the journalled changes.
 				atomically (tryTakeTMVar idlev) >>= \case
-					Just () -> commit
+					Just () -> runcommit
 					Nothing -> noop
 				committer idlev
 			Left () -> return ()
 
-	commit =
-		void $ handleRequestAnnex st $ do
-			Annex.Branch.commit =<< Annex.Branch.commitMessage
-			quiesceRequestAnnex workerlimit
+	runcommit =
+		-- Use a warmed up AnnexWorker to do the commit when possible.
+		-- But, if the server is too busy, the commit still needs
+		-- to happen promptly. So avoid blocking and fall back
+		-- to running the commit using the RequestRunner Annex
+		-- state. Which then needs to be quiesced, which makes
+		-- it less efficient.
+		inAnnexWorkerNonBlocking workerlimit workerpool commit >>= \case
+			Just _ -> return ()
+			Nothing -> void $ handleRequestAnnex st $ do
+				commit
+				quiesceRequestAnnex workerlimit
+	
+	commit = Annex.Branch.commit =<< Annex.Branch.commitMessage
