@@ -20,7 +20,7 @@ git-annex (10.20261113) upstream; urgency=medium
   * NoLLMDependencies: Update for network and http-semantics. 
   * Fix build when the Memory build flag is disabled.
   * Don't prompt for verification of proxied remotes, which is not
-    necessary and didn't work.
+    necessary and didn't work. (Fixes reversion in 10.20261026.)
 
  -- Joey Hess <id@joeyh.name>  Thu, 12 Nov 2026 15:51:18 -0400
 
