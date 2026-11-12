@@ -64,3 +64,11 @@ After upgrading git-annex, existing special remotes will continue to work
 as before. If a special remote could have been configured by a third party,
 you should verify its configuration using the `git-annex verifyremote`
 command.
+
+----
+
+Note that git-annex 10.20261026 which fixed this (and also backports
+of the security fixes to older versions of git-annex)
+unfortunately broke accessing proxied remotes. See
+[[doc/security/cross_repository_data_exfiltration_via_special_remote]]
+for a workaround if you encounter that reversion.
