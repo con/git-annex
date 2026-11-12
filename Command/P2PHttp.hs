@@ -139,7 +139,7 @@ startAnnex o
 			lockedfilesqsem <- liftIO $ 
 				mkLockedFilesQSem (lockedFilesOption o)
 			authenv <- liftIO getAuthEnv
-			st <- mkServerState o authenv lockedfilesqsem
+			st <- mkServerState o authenv lockedfilesqsem NoWorkerLimit
 			liftIO $ runServer o st
 		-- Run in a git repository that is not a git-annex repository.
 		, liftIO $ startIO o 
@@ -158,20 +158,26 @@ startIO o
 	mkst authenv oldst = do
 		lockedfilesqsem <- mkLockedFilesQSem (lockedFilesOption o)
 		repos <- findRepos o
+		workerlimit <- mkAnnexWorkerLimit
 		sts <- forM repos $ \r -> do
-			strd <- Annex.new r
-			Annex.eval strd (mkstannex authenv oldst lockedfilesqsem)
+			maker <- Annex.newMaker r
+			strd <- maker
+			let workerlimit' = 
+				setAnnexWorkerLimitMaker maker workerlimit
+			Annex.eval strd $
+				mkstannex authenv oldst lockedfilesqsem
+					workerlimit'
 		return (mconcat sts)
 			{ updateRepos = updaterepos authenv
 			}
 	
-	mkstannex authenv oldst lockedfilesqsem = do
+	mkstannex authenv oldst lockedfilesqsem workerlimit = do
 		Annex.setOutput QuietOutput
 		u <- getUUID
 		if u == NoUUID
 			then return mempty
 			else case M.lookup u (servedRepos oldst) of
-				Nothing -> mkServerState o authenv lockedfilesqsem
+				Nothing -> mkServerState o authenv lockedfilesqsem workerlimit
 				Just old -> return $ P2PHttpServerState
 					{ servedRepos = M.singleton u old
 					, serverShutdownCleanup = mempty
@@ -239,15 +245,16 @@ runServer o mst = go `finally` serverShutdownCleanup mst
 		Socket.listen sock Socket.maxListenQueue
 		return sock
 
-mkServerState :: Options -> M.Map Auth P2P.ServerMode -> LockedFilesQSem -> Annex P2PHttpServerState
-mkServerState o authenv lockedfilesqsem = 
-	withAnnexWorkerPool (jobsOption o) (cpusOption o) $
+mkServerState :: Options -> M.Map Auth P2P.ServerMode -> LockedFilesQSem -> AnnexWorkerLimit -> Annex P2PHttpServerState
+mkServerState o authenv lockedfilesqsem workerlimit = 
+	withAnnexWorkerPool (jobsOption o) (cpusOption o) workerlimit $
 		mkP2PHttpServerState
 			(mkGetServerMode authenv o)
 			return
 			(fromMaybe 1 $ proxyConnectionsOption o)
 			(fromMaybe 1 $ clusterJobsOption o)
 			lockedfilesqsem
+			workerlimit
 
 mkGetServerMode :: M.Map Auth P2P.ServerMode -> Options -> GetServerMode
 mkGetServerMode _ o _ Nothing

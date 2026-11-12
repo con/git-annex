@@ -1,9 +1,11 @@
 {- Worker thread pool.
  -
- - Copyright 2019-2023 Joey Hess <id@joeyh.name>
+ - Copyright 2019-2026 Joey Hess <id@joeyh.name>
  -
  - Licensed under the GNU AGPL version 3 or higher.
  -}
+
+{-# LANGUAGE DeriveFunctor #-}
 
 module Types.WorkerPool where
 
@@ -12,6 +14,8 @@ import Types.Direction
 import Control.Concurrent
 import Control.Concurrent.Async
 import qualified Data.Set as S
+import Data.Unique
+import Control.Monad
 
 -- | Pool of worker threads. 
 data WorkerPool t = WorkerPool
@@ -36,6 +40,7 @@ instance Show (WorkerPool t) where
 data Worker t
 	= IdleWorker WorkerStage
 	| ActiveWorker (Async t) WorkerStage
+	deriving (Functor)
 
 instance Show (Worker t) where
 	show (IdleWorker s) = "IdleWorker " ++ show s
@@ -115,15 +120,31 @@ workerAsync (ActiveWorker aid _) = Just aid
 -- | Allocates a WorkerPool that has the specified number of workers
 -- in it, of each stage.
 allocateWorkerPool :: t -> Int -> UsedStages -> WorkerPool t
-allocateWorkerPool t n u = WorkerPool
+allocateWorkerPool t n u =
+	let stages = workerPoolStages u
+	in allocateWorkerPool' u
+		(replicate (workerPoolSize n stages) t)
+		stages
+
+allocateWorkerPoolM :: IO t -> Int -> UsedStages -> IO (WorkerPool t)
+allocateWorkerPoolM mkt n u = do
+	let stages = workerPoolStages u
+	ts <- replicateM (workerPoolSize n stages) mkt
+	return $ allocateWorkerPool' u ts stages
+
+allocateWorkerPool' :: UsedStages -> [t] -> [WorkerStage] -> WorkerPool t
+allocateWorkerPool' u ts stages = WorkerPool
 	{ usedStages = u
 	, workerList = map IdleWorker $
-		take totalthreads $ concat $ repeat stages
-	, spareVals = replicate totalthreads t
+		take (length ts) $ concat $ repeat stages
+	, spareVals = ts
 	}
-  where
-	stages = StartStage : S.toList (stageSet u)
-	totalthreads = n * length stages
+
+workerPoolSize :: Int -> [WorkerStage] -> Int
+workerPoolSize n stages = n * length stages
+
+workerPoolStages :: UsedStages -> [WorkerStage]
+workerPoolStages u = StartStage : S.toList (stageSet u)
 
 addWorkerPool :: Worker t -> WorkerPool t -> WorkerPool t
 addWorkerPool w pool = pool { workerList = w : workerList pool }
@@ -162,3 +183,17 @@ allIdle pool = all idle (workerList pool)
   where
 	idle (IdleWorker _) = True
 	idle (ActiveWorker _ _) = False
+
+{- Tags each value in a WorkerPool with a Unique identifier. -}
+taggedWorkerPool :: WorkerPool t -> IO (WorkerPool (t, Unique))
+taggedWorkerPool wp = do
+	wl <- forM (workerList wp) $ \w -> do
+		u <- newUnique
+		return (fmap (\v -> (v, u)) w)
+	sl <- zip (spareVals wp)
+		<$> replicateM (length (spareVals wp)) newUnique
+	return $ WorkerPool
+		{ usedStages = usedStages wp
+		, workerList = wl
+		, spareVals = sl
+		} 

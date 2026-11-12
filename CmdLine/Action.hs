@@ -224,17 +224,21 @@ performCommandAction' startmsg perform =
  - started here, that has the same effect.
  -}
 startConcurrency :: UsedStages -> Annex a -> Annex a
-startConcurrency usedstages a = do
+startConcurrency usedstages a = startConcurrency' usedstages (const a)
+
+{- Passes the number of worker threads to the Annex action. -}
+startConcurrency' :: UsedStages -> (Int -> Annex a) -> Annex a
+startConcurrency' usedstages a = do
 	fromcmdline <- getConcurrency
 	fromgitcfg <- annexJobs <$> Annex.getGitConfig
 	let usegitcfg = setConcurrency (ConcurrencyGitConfig fromgitcfg)
 	case (fromcmdline, fromgitcfg) of
-		(NonConcurrent, NonConcurrent) -> a
+		(NonConcurrent, NonConcurrent) -> a 1
 		(Concurrent n, _) 
 			| n > 1 -> goconcurrent n
 			| otherwise -> do
 				setConcurrency' NonConcurrent ConcurrencyCmdLine
-				a
+				a 1
 		(ConcurrentPerCpu, _) ->
 			goconcurrentpercpu
 		(NonConcurrent, Concurrent n) -> do
@@ -244,10 +248,8 @@ startConcurrency usedstages a = do
 			usegitcfg
 			goconcurrentpercpu
   where
-	goconcurrent n = do
-		raiseCapabilitiesForJobs n
-		withConcurrentOutput (goconcurrent' n)
-	goconcurrent' n = bracket_ (setup n) cleanup a
+	goconcurrent n = prepareConcurrency n $
+		bracket_ (setup n) cleanup (a n)
 
 	goconcurrentpercpu = goconcurrent =<< liftIO getNumProcessors
 
@@ -263,6 +265,11 @@ startConcurrency usedstages a = do
 		rd <- Annex.getRead id
 		liftIO $ atomically $ putTMVar tv $
 			allocateWorkerPool (st, rd) (max n 1) usedstages
+
+prepareConcurrency :: Int -> Annex a -> Annex a
+prepareConcurrency n a = do
+	raiseCapabilitiesForJobs n
+	withConcurrentOutput a
 
 -- Make sure that some expensive actions have been done before
 -- starting threads. This way the state has them already run,

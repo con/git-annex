@@ -21,6 +21,8 @@ git-annex (10.20261113) upstream; urgency=medium
   * Fix build when the Memory build flag is disabled.
   * Don't prompt for verification of proxied remotes, which is not
     necessary and didn't work. (Fixes reversion in 10.20261026.)
+  * p2phttp: When --directory is used to serve a large number of
+    repositories, limit the amount of git helper processes and open files.
 
  -- Joey Hess <id@joeyh.name>  Thu, 12 Nov 2026 15:51:18 -0400
 
