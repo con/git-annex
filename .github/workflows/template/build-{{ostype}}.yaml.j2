@@ -73,7 +73,8 @@ jobs:
     {% elif ostype.startswith("macos") %}
       - name: Set up system
         run: |
-          brew install libmagic pkg-config rsync
+          brew install libmagic pkg-config rsync{% if not botan_from_source %} botan{% endif %}
+
           # On ARM64 Macs, Homebrew uses /opt/homebrew instead of /usr/local
           # Set paths so that the Haskell magic package can find libmagic
           HOMEBREW_PREFIX="$(brew --prefix)"
@@ -83,6 +84,36 @@ jobs:
             echo "C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include:${C_INCLUDE_PATH:-}"
           } >> "$GITHUB_ENV"
 
+    {% if botan_from_source %}
+      # git-annex requires Botan 3 since 10.20261105.  Homebrew provides no
+      # bottles for Intel macOS, so `brew install botan` would build it and
+      # its dependencies (python, openssl, ...) from source on every run.
+      # Build just Botan ourselves instead, and cache the result.
+      - name: Cache Botan
+        id: cache-botan
+        uses: actions/cache@v6
+        with:
+          path: ~/botan
+          key: botan-{{botan_from_source.version}}-{{runs_on}}
+
+      - name: Build Botan
+        if: steps.cache-botan.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL -o Botan.tar.xz "https://botan.randombit.net/releases/Botan-{{botan_from_source.version}}.tar.xz"
+          echo "{{botan_from_source.sha256}}  Botan.tar.xz" | shasum -a 256 -c -
+          tar xJf Botan.tar.xz
+          cd "Botan-{{botan_from_source.version}}"
+          python3 configure.py --prefix="$HOME/botan" --build-targets=shared --without-documentation
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+        working-directory: ${{ runner.temp }}
+
+      - name: Make Botan available to the build
+        run: |
+          echo "PKG_CONFIG_PATH=$HOME/botan/lib/pkgconfig:$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
+          PKG_CONFIG_PATH="$HOME/botan/lib/pkgconfig:$PKG_CONFIG_PATH" pkg-config --modversion botan-3
+
+    {% endif %}
     {% endif %}
     {% if ostype == "windows" or ostype.startswith("macos") %}
       - name: Setup Haskell
@@ -290,6 +321,24 @@ jobs:
           restore-keys: |
             cache-stack-windows-
 
+      # git-annex requires Botan 3 since 10.20261105.  Get it (and pkg-config,
+      # which the Haskell botan-bindings uses to locate it) into the MSYS2
+      # that Stack uses, and put the DLLs needed at run time into the current
+      # directory, from which Build/NullSoftInstaller.hs bundles *.dll.
+      - name: Install Botan
+        run: |
+          stack exec -- pacman -Sy --noconfirm --needed \
+            mingw-w64-clang-x86_64-libbotan mingw-w64-clang-x86_64-pkgconf
+          stack exec -- pkg-config --modversion botan-3
+          clang64="$(echo "$(cygpath -u "$(stack path --programs)")"/msys2-*/clang64)"
+          ls -l "$clang64"/bin/libbotan-3*.dll
+          PATH="$clang64/bin:$PATH" ldd "$clang64"/bin/libbotan-3*.dll \
+            | awk '$3 ~ /\/clang64\/bin\// {print $3}' | sort -u > botan-deps.txt
+          cat botan-deps.txt
+          # -n: do not overwrite DLLs which came with libmagic
+          cp -nv "$clang64"/bin/libbotan-3*.dll $(cat botan-deps.txt) .
+          rm botan-deps.txt
+
       - name: Build dependencies
         run: stack build --only-dependencies --extra-include-dirs=$PWD --extra-lib-dirs=$PWD
 
@@ -482,6 +531,9 @@ jobs:
           GIT_ANNEX_DIR="$(dirname "$GIT_ANNEX_PATH")"
           ls "$GIT_ANNEX_DIR"/*magic* "$GIT_ANNEX_DIR"/*gnurx*
           ls "$GIT_ANNEX_DIR"/../share/misc/*magic*
+
+      - name: Check that Botan is installed
+        run: ls "$(dirname "$(type -p git-annex)")"/libbotan-3*.dll
 
     {% endif %}
 

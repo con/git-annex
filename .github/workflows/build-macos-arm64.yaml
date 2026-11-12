@@ -46,7 +46,7 @@ jobs:
 
       - name: Set up system
         run: |
-          brew install libmagic pkg-config rsync
+          brew install libmagic pkg-config rsync botan
           # On ARM64 Macs, Homebrew uses /opt/homebrew instead of /usr/local
           # Set paths so that the Haskell magic package can find libmagic
           HOMEBREW_PREFIX="$(brew --prefix)"

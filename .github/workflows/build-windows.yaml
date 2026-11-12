@@ -122,6 +122,24 @@ jobs:
           restore-keys: |
             cache-stack-windows-
 
+      # git-annex requires Botan 3 since 10.20261105.  Get it (and pkg-config,
+      # which the Haskell botan-bindings uses to locate it) into the MSYS2
+      # that Stack uses, and put the DLLs needed at run time into the current
+      # directory, from which Build/NullSoftInstaller.hs bundles *.dll.
+      - name: Install Botan
+        run: |
+          stack exec -- pacman -Sy --noconfirm --needed \
+            mingw-w64-clang-x86_64-libbotan mingw-w64-clang-x86_64-pkgconf
+          stack exec -- pkg-config --modversion botan-3
+          clang64="$(echo "$(cygpath -u "$(stack path --programs)")"/msys2-*/clang64)"
+          ls -l "$clang64"/bin/libbotan-3*.dll
+          PATH="$clang64/bin:$PATH" ldd "$clang64"/bin/libbotan-3*.dll \
+            | awk '$3 ~ /\/clang64\/bin\// {print $3}' | sort -u > botan-deps.txt
+          cat botan-deps.txt
+          # -n: do not overwrite DLLs which came with libmagic
+          cp -nv "$clang64"/bin/libbotan-3*.dll $(cat botan-deps.txt) .
+          rm botan-deps.txt
+
       - name: Build dependencies
         run: stack build --only-dependencies --extra-include-dirs=$PWD --extra-lib-dirs=$PWD
 
@@ -254,6 +272,9 @@ jobs:
           GIT_ANNEX_DIR="$(dirname "$GIT_ANNEX_PATH")"
           ls "$GIT_ANNEX_DIR"/*magic* "$GIT_ANNEX_DIR"/*gnurx*
           ls "$GIT_ANNEX_DIR"/../share/misc/*magic*
+
+      - name: Check that Botan is installed
+        run: ls "$(dirname "$(type -p git-annex)")"/libbotan-3*.dll
 
 
       - name: Check git-annex version for some expected build flags
