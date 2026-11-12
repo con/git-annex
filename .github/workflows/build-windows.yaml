@@ -171,8 +171,11 @@ jobs:
 
       - name: Build the installer
         run: |
-          stack ghc --no-haddock --package nsis Build/NullSoftInstaller.hs
-          TMP="$PWD" ./Build/NullSoftInstaller
+          # Since upstream c20567a9 (2026-10-30) the installer builder is no
+          # longer a standalone program, but a part of the multicall git-annex
+          cp git-annex.exe nullsoft-installer.exe
+          TMP="$PWD" ./nullsoft-installer
+          rm nullsoft-installer.exe
 
       - name: Add version to installer name
         run: |
