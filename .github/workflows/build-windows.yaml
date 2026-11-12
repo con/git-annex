@@ -100,6 +100,11 @@ jobs:
       - name: Enable building with magic
         run: |
           perl -pli -e 's/magicmime: false/magicmime: true/' stack.yaml
+          # The libmagic downloaded above comes without a .pc file, and Stack
+          # does not fall back automatically to not using pkg-config (which
+          # gets installed for Botan below)
+          perl -pli -e 's/^flags:$/flags:\n  libmagic:\n    pkgconfig: false/' stack.yaml
+          grep -A2 '^flags:' stack.yaml | grep -q 'pkgconfig: false'
 
       - name: Set UPGRADE_LOCATION
         run: |
