@@ -31,7 +31,7 @@ import Annex.Action
 import Annex.Concurrent
 import Types.Concurrency
 import Types.Cluster
-import CmdLine.Action (startConcurrency, prepareConcurrency)
+import CmdLine.Action (startConcurrency')
 import Utility.ThreadScheduler
 import Utility.HumanTime
 import Logs.Proxy
@@ -659,33 +659,24 @@ withAnnexWorkerPool
 	-> Annex a
 withAnnexWorkerPool mconc mcpus workerlimit a = do
 	maybe noop setCpus mcpus
-	case workerlimit of
-		NoWorkerLimit -> do
-			maybe noop (setConcurrency . ConcurrencyCmdLine) mconc
-			startConcurrency transferStages $
-				Annex.getState Annex.workers >>= \case
-					Nothing -> giveup "Use --jobs or set annex.jobs to configure the number of worker threads."
-					Just wp -> go =<< liftIO (atomically $ readTMVar wp)
-		{- quiesceAnnexWorker calls stopCoProcesses, which,
-		 - stops helper processes that are in resource pools
-		 - set up by dupState and shared with other AnnexWorkers.
-		 - That is not desirable, and to avoid it happening here,
-		 - the state is copied rather than using startConcurrency.
-		 -}
-		WorkerLimit workerlimitvar -> do
-			n <- liftIO $ atomically $ fst <$> readTMVar workerlimitvar
-			prepareConcurrency n $ do
-				-- quiesce to avoid copies sharing helper
-				-- processes, handles, etc
-				quiesce False
-				st <- Annex.getState id
-				rd <- Annex.getRead id
-				go $ allocateWorkerPool (st, rd) (max n 1) transferStages
+	maybe noop (setConcurrency . ConcurrencyCmdLine) mconc
+	startConcurrency' stages $ \nworkers ->
+		Annex.getState Annex.workers >>= \case
+			Nothing -> giveup "Use --jobs or set annex.jobs to configure the number of worker threads."
+			Just wpv -> go wpv nworkers
   where
-	go p = do
+	go wpv nworkers = do
+		p <- case workerlimit of
+			NoWorkerLimit -> liftIO $ atomically $ readTMVar wpv
+			WorkerLimit { makeNewWorker = Just maker } -> do
+				liftIO $ setAnnexWorkerLimit workerlimit nworkers
+				liftIO $ allocateWorkerPoolM maker nworkers stages
+			WorkerLimit { makeNewWorker = Nothing } ->
+				error "internal"
 		tp <- liftIO $ taggedWorkerPool p
 		awp <- liftIO $ newTMVarIO tp
 		a awp
+	stages = transferStages
 
 inAnnexWorker :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Either SomeException a)
 inAnnexWorker workerlimit poolv annexaction = do
@@ -717,14 +708,35 @@ inAnnexWorker workerlimit poolv annexaction = do
 
 data AnnexWorkerLimit
 	= NoWorkerLimit
-	| WorkerLimit (TMVar (Int, WarmWorkers))
+	| WorkerLimit 
+		{ workerLimit :: TMVar (Int, WarmWorkers)
+		, makeNewWorker :: Maybe (IO AnnexWorker)
+		-- ^ quiesceAnnexWorker calls stopCoProcesses, which
+		-- stops helper processes that are in resource pools
+		-- set up by dupState and shared with other AnnexWorkers.
+		-- So this must not use dupState.
+		}
 
 -- Workers that are not in use, but that have been warmed up: They have
 -- opened file handles, started helper processes, etc.
 type WarmWorkers = LRU Unique AnnexWorker
 
-mkAnnexWorkerLimit :: Int -> IO AnnexWorkerLimit
-mkAnnexWorkerLimit n = WorkerLimit <$> newTMVarIO (n, emptyLRU)
+mkAnnexWorkerLimit :: IO AnnexWorkerLimit
+mkAnnexWorkerLimit = WorkerLimit 
+	<$> newTMVarIO (1, emptyLRU)
+	<*> pure Nothing
+
+setAnnexWorkerLimitMaker :: IO AnnexWorker -> AnnexWorkerLimit -> AnnexWorkerLimit
+setAnnexWorkerLimitMaker maker workerlimit@(WorkerLimit {}) =
+	workerlimit { makeNewWorker = Just maker }
+setAnnexWorkerLimitMaker _ _ = error "internal"
+
+setAnnexWorkerLimit :: AnnexWorkerLimit -> Int -> IO ()
+setAnnexWorkerLimit WorkerLimit { workerLimit = v } nworkers =
+	atomically $ do
+		(_, lru) <- takeTMVar v
+		putTMVar v (nworkers, lru)
+setAnnexWorkerLimit NoWorkerLimit _ = noop
 
 -- Allocate a new annex worker.
 -- If necessary, first quiesces the least recently used one.
@@ -733,7 +745,7 @@ allocateAnnexWorker
 	-> STM ((AnnexWorker, Unique), WorkerStage)
 	-> IO ((AnnexWorker, Unique), WorkerStage)
 allocateAnnexWorker NoWorkerLimit a = atomically a
-allocateAnnexWorker (WorkerLimit v) a = do
+allocateAnnexWorker (WorkerLimit { workerLimit = v }) a = do
 	r <- atomically $ do
 		(n, warm) <- takeTMVar v
 		if n < 1
@@ -746,7 +758,7 @@ allocateAnnexWorker (WorkerLimit v) a = do
 				res@((_, workerid), _) <- a
 				putTMVar v (n-1, removeLRU warm workerid)
 				return $ Right res
-	case r of
+	observe reportworkerid $ case r of
 		Right res -> return res
 		Left toquiesce -> do
 			quiesceAnnexWorker toquiesce
@@ -755,12 +767,16 @@ allocateAnnexWorker (WorkerLimit v) a = do
 				res@((_, workerid), _) <- a
 				putTMVar v (n, removeLRU warm workerid)
 				return res
+  where
+	reportworkerid ((_, workerid), _) =
+		debug "P2P.Http" $ "using worker "
+			++ show (hashUnique workerid)
 
 -- Called after allocateAnnexWorker has allocated a worker,
 -- and it is done being used.
 deallocateAnnexWorker :: AnnexWorkerLimit -> AnnexWorker -> Unique -> STM ()
 deallocateAnnexWorker NoWorkerLimit _ _ = noop
-deallocateAnnexWorker (WorkerLimit v) worker workerid = do
+deallocateAnnexWorker (WorkerLimit { workerLimit = v }) worker workerid = do
 	(n, warm) <- takeTMVar v
 	let warm' = addLRU warm workerid worker
 	putTMVar v (n+1, warm')

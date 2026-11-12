@@ -34,7 +34,6 @@ import System.PosixCompat.Files (isSymbolicLink)
 import qualified Data.Map as M
 import Data.String
 import Control.Concurrent.STM
-import GHC.Conc
 
 cmd :: Command
 cmd = noMessages $ dontCheck repoExists $ 
@@ -158,16 +157,16 @@ startIO o
   where
 	mkst authenv oldst = do
 		lockedfilesqsem <- mkLockedFilesQSem (lockedFilesOption o)
-		numjobs <- case jobsOption o of
-			Just (Concurrent n) -> pure n
-			Just ConcurrentPerCpu -> getNumProcessors
-			Just NonConcurrent -> pure 1
-			Nothing -> giveup "Use --jobs to configure the number of worker threads."
-		workerlimit <- mkAnnexWorkerLimit numjobs
 		repos <- findRepos o
+		workerlimit <- mkAnnexWorkerLimit
 		sts <- forM repos $ \r -> do
-			strd <- Annex.new r
-			Annex.eval strd (mkstannex authenv oldst lockedfilesqsem workerlimit)
+			maker <- Annex.newMaker r
+			strd <- maker
+			let workerlimit' = 
+				setAnnexWorkerLimitMaker maker workerlimit
+			Annex.eval strd $
+				mkstannex authenv oldst lockedfilesqsem
+					workerlimit'
 		return (mconcat sts)
 			{ updateRepos = updaterepos authenv
 			}

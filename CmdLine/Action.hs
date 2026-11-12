@@ -224,17 +224,21 @@ performCommandAction' startmsg perform =
  - started here, that has the same effect.
  -}
 startConcurrency :: UsedStages -> Annex a -> Annex a
-startConcurrency usedstages a = do
+startConcurrency usedstages a = startConcurrency' usedstages (const a)
+
+{- Passes the number of worker threads to the Annex action. -}
+startConcurrency' :: UsedStages -> (Int -> Annex a) -> Annex a
+startConcurrency' usedstages a = do
 	fromcmdline <- getConcurrency
 	fromgitcfg <- annexJobs <$> Annex.getGitConfig
 	let usegitcfg = setConcurrency (ConcurrencyGitConfig fromgitcfg)
 	case (fromcmdline, fromgitcfg) of
-		(NonConcurrent, NonConcurrent) -> a
+		(NonConcurrent, NonConcurrent) -> a 1
 		(Concurrent n, _) 
 			| n > 1 -> goconcurrent n
 			| otherwise -> do
 				setConcurrency' NonConcurrent ConcurrencyCmdLine
-				a
+				a 1
 		(ConcurrentPerCpu, _) ->
 			goconcurrentpercpu
 		(NonConcurrent, Concurrent n) -> do
@@ -245,7 +249,7 @@ startConcurrency usedstages a = do
 			goconcurrentpercpu
   where
 	goconcurrent n = prepareConcurrency n $
-		bracket_ (setup n) cleanup a
+		bracket_ (setup n) cleanup (a n)
 
 	goconcurrentpercpu = goconcurrent =<< liftIO getNumProcessors
 

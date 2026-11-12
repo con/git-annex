@@ -120,15 +120,31 @@ workerAsync (ActiveWorker aid _) = Just aid
 -- | Allocates a WorkerPool that has the specified number of workers
 -- in it, of each stage.
 allocateWorkerPool :: t -> Int -> UsedStages -> WorkerPool t
-allocateWorkerPool t n u = WorkerPool
+allocateWorkerPool t n u =
+	let stages = workerPoolStages u
+	in allocateWorkerPool' u
+		(replicate (workerPoolSize n stages) t)
+		stages
+
+allocateWorkerPoolM :: IO t -> Int -> UsedStages -> IO (WorkerPool t)
+allocateWorkerPoolM mkt n u = do
+	let stages = workerPoolStages u
+	ts <- replicateM (workerPoolSize n stages) mkt
+	return $ allocateWorkerPool' u ts stages
+
+allocateWorkerPool' :: UsedStages -> [t] -> [WorkerStage] -> WorkerPool t
+allocateWorkerPool' u ts stages = WorkerPool
 	{ usedStages = u
 	, workerList = map IdleWorker $
-		take totalthreads $ concat $ repeat stages
-	, spareVals = replicate totalthreads t
+		take (length ts) $ concat $ repeat stages
+	, spareVals = ts
 	}
-  where
-	stages = StartStage : S.toList (stageSet u)
-	totalthreads = n * length stages
+
+workerPoolSize :: Int -> [WorkerStage] -> Int
+workerPoolSize n stages = n * length stages
+
+workerPoolStages :: UsedStages -> [WorkerStage]
+workerPoolStages u = StartStage : S.toList (stageSet u)
 
 addWorkerPool :: Worker t -> WorkerPool t -> WorkerPool t
 addWorkerPool w pool = pool { workerList = w : workerList pool }

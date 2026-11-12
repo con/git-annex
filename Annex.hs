@@ -13,6 +13,7 @@ module Annex (
 	AnnexRead(..),
 	new,
 	new',
+	newMaker,
 	run,
 	eval,
 	makeRunner,
@@ -296,19 +297,29 @@ newAnnexState c r = do
 		, reposizehandle = Nothing
 		}
 
-{- Makes an Annex state object for the specified git repo.
+{- Makes an Annex state and read objects for the specified git repo.
  - Ensures the config is read, if it was not already, and performs
  - any necessary git repo fixups. -}
 new :: Git.Repo -> IO (AnnexState, AnnexRead)
 new = new' fixupRepo
 
 new' :: (Git.Repo -> GitConfig -> IO Git.Repo) -> Git.Repo -> IO (AnnexState, AnnexRead)
-new' f r = do
+new' f r = join $ newMaker' f r
+
+{- Returns an IO action which can be called repeatedly, making
+ - new Annex state and read objects each time. -}
+newMaker :: Git.Repo -> IO (IO (AnnexState, AnnexRead))
+newMaker = newMaker' fixupRepo
+
+newMaker' :: (Git.Repo -> GitConfig -> IO Git.Repo) -> Git.Repo -> IO (IO (AnnexState, AnnexRead))
+newMaker' f r = do
 	r' <- Git.Config.read r
 	let c = extractGitConfig FromGitConfig r'
-	st <- newAnnexState c =<< f r' c
-	rd <- newAnnexRead c
-	return (st, rd)
+	r'' <- f r' c
+	return $ do
+		st <- newAnnexState c r''
+		rd <- newAnnexRead c
+		return (st, rd)
 
 {- Performs an action in the Annex monad from a starting state,
  - returning a new state. -}
