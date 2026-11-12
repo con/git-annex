@@ -31,7 +31,7 @@ import Annex.Action
 import Annex.Concurrent
 import Types.Concurrency
 import Types.Cluster
-import CmdLine.Action (startConcurrency')
+import CmdLine.Action (startConcurrency', startConcurrency)
 import Utility.ThreadScheduler
 import Utility.HumanTime
 import Logs.Proxy
@@ -670,7 +670,13 @@ withAnnexWorkerPool mconc mcpus workerlimit a = do
 		NoWorkerLimit -> use $ atomically $ readTMVar wpv
 		WorkerLimit { makeNewWorker = Just maker } -> do
 			liftIO $ setAnnexWorkerLimit workerlimit nworkers
-			use (allocateWorkerPoolM maker nworkers stages)
+			let maker' = do
+				strd <- maker
+				((), strd') <- Annex.run strd $ do
+					setConcurrency $ ConcurrencyCmdLine $ Concurrent 1
+					startConcurrency stages noop
+				return strd'
+			use (allocateWorkerPoolM maker' nworkers stages)
 				`finally` quiesce True
 		WorkerLimit { makeNewWorker = Nothing } ->
 			error "internal"
