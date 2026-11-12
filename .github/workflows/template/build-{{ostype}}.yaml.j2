@@ -89,9 +89,9 @@ jobs:
       # bottles for Intel macOS, so `brew install botan` would build it and
       # its dependencies (python, openssl, ...) from source on every run.
       # Build just Botan ourselves instead, and cache the result.
-      - name: Cache Botan
+      - name: Restore cached Botan
         id: cache-botan
-        uses: actions/cache@v6
+        uses: actions/cache/restore@v6
         with:
           path: ~/botan
           key: botan-{{botan_from_source.version}}-{{runs_on}}
@@ -107,6 +107,15 @@ jobs:
           make -j"$(sysctl -n hw.ncpu)"
           make install
         working-directory: ${{ runner.temp }}
+
+      # Save right away, so that a later failure of the job does not cost a
+      # rebuild of Botan on the next run
+      - name: Cache Botan
+        if: steps.cache-botan.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/botan
+          key: ${{ steps.cache-botan.outputs.cache-primary-key }}
 
       - name: Make Botan available to the build
         run: |
@@ -332,12 +341,18 @@ jobs:
           stack exec -- pkg-config --modversion botan-3
           clang64="$(echo "$(cygpath -u "$(stack path --programs)")"/msys2-*/clang64)"
           ls -l "$clang64"/bin/libbotan-3*.dll
-          PATH="$clang64/bin:$PATH" ldd "$clang64"/bin/libbotan-3*.dll \
-            | awk '$3 ~ /\/clang64\/bin\// {print $3}' | sort -u > botan-deps.txt
-          cat botan-deps.txt
+          PATH="$clang64/bin:$PATH" ldd "$clang64"/bin/libbotan-3*.dll > botan-ldd.txt
+          cat botan-ldd.txt
+          if grep 'not found' botan-ldd.txt; then
+            echo "::error::Some dependencies of libbotan were not found"
+            exit 1
+          fi
+          awk '$3 ~ /\/clang64\/bin\// {print $3}' botan-ldd.txt | sort -u > botan-deps.txt
+          # libbotan is C++, so there must at least be the C++ runtime
+          grep -q 'libc++' botan-deps.txt
           # -n: do not overwrite DLLs which came with libmagic
           cp -nv "$clang64"/bin/libbotan-3*.dll $(cat botan-deps.txt) .
-          rm botan-deps.txt
+          rm botan-ldd.txt botan-deps.txt
 
       - name: Build dependencies
         run: stack build --only-dependencies --extra-include-dirs=$PWD --extra-lib-dirs=$PWD

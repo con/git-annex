@@ -133,12 +133,18 @@ jobs:
           stack exec -- pkg-config --modversion botan-3
           clang64="$(echo "$(cygpath -u "$(stack path --programs)")"/msys2-*/clang64)"
           ls -l "$clang64"/bin/libbotan-3*.dll
-          PATH="$clang64/bin:$PATH" ldd "$clang64"/bin/libbotan-3*.dll \
-            | awk '$3 ~ /\/clang64\/bin\// {print $3}' | sort -u > botan-deps.txt
-          cat botan-deps.txt
+          PATH="$clang64/bin:$PATH" ldd "$clang64"/bin/libbotan-3*.dll > botan-ldd.txt
+          cat botan-ldd.txt
+          if grep 'not found' botan-ldd.txt; then
+            echo "::error::Some dependencies of libbotan were not found"
+            exit 1
+          fi
+          awk '$3 ~ /\/clang64\/bin\// {print $3}' botan-ldd.txt | sort -u > botan-deps.txt
+          # libbotan is C++, so there must at least be the C++ runtime
+          grep -q 'libc++' botan-deps.txt
           # -n: do not overwrite DLLs which came with libmagic
           cp -nv "$clang64"/bin/libbotan-3*.dll $(cat botan-deps.txt) .
-          rm botan-deps.txt
+          rm botan-ldd.txt botan-deps.txt
 
       - name: Build dependencies
         run: stack build --only-dependencies --extra-include-dirs=$PWD --extra-lib-dirs=$PWD

@@ -60,9 +60,9 @@ jobs:
       # bottles for Intel macOS, so `brew install botan` would build it and
       # its dependencies (python, openssl, ...) from source on every run.
       # Build just Botan ourselves instead, and cache the result.
-      - name: Cache Botan
+      - name: Restore cached Botan
         id: cache-botan
-        uses: actions/cache@v6
+        uses: actions/cache/restore@v6
         with:
           path: ~/botan
           key: botan-3.14.1-macos-15-intel
@@ -78,6 +78,15 @@ jobs:
           make -j"$(sysctl -n hw.ncpu)"
           make install
         working-directory: ${{ runner.temp }}
+
+      # Save right away, so that a later failure of the job does not cost a
+      # rebuild of Botan on the next run
+      - name: Cache Botan
+        if: steps.cache-botan.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/botan
+          key: ${{ steps.cache-botan.outputs.cache-primary-key }}
 
       - name: Make Botan available to the build
         run: |
