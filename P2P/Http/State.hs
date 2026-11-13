@@ -46,10 +46,12 @@ import Utility.LRU
 import Servant hiding (Unique)
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
+import Control.Concurrent
 import Control.Concurrent.Async
 import Control.Concurrent.STM
 import Data.Time.Clock.POSIX
 import Data.Unique
+import System.Mem
 
 data P2PHttpServerState = P2PHttpServerState
 	{ servedRepos :: M.Map UUID PerRepoServerState
@@ -373,7 +375,8 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 	servicereq runnertype annexstate annexread myuuid myproxies proxypool relv connparams ready
 		| connectionServerUUID connparams == myuuid =
 			localConnection relv connparams runner ready
-		| otherwise =
+		| otherwise = do
+			liftIO $ print runnertype
 			atomically (getProxyConnectionPool proxypool connparams) >>= \case
 				Just conn -> 
 					proxyConnection proxyconnectionpoolsize relv connparams runner proxypool conn ready
@@ -545,7 +548,7 @@ proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyco
 			r <- liftIO $ wait asyncworker
 			when connstillusable
 				closebothsides
-			if connstillusable
+			if connstillusable && False
 				then liftIO $ do
 					now <- getPOSIXTime
 					evicted <- atomically $ putProxyConnectionPool proxypool proxyconnectionpoolsize connparams $
@@ -669,7 +672,7 @@ withAnnexWorkerPool mconc mcpus workerlimit a = do
 	go wpv nworkers = case workerlimit of
 		NoWorkerLimit -> use $ atomically $ readTMVar wpv
 		WorkerLimit { makeNewWorker = Just maker } -> do
-			liftIO $ setAnnexWorkerLimit workerlimit nworkers
+			liftIO $ setAnnexWorkerLimit workerlimit 1
 			let maker' = do
 				strd <- maker
 				((), strd') <- Annex.run strd $ do
@@ -889,6 +892,7 @@ data AnnexActionRunner
 	= WorkerPoolRunner
 	-- When using this, must enforce bounds first
 	| RequestRunner
+	deriving (Show)
 
 annexActionRunner :: AnnexActionRunner -> AnnexWorkerLimit -> AnnexWorkerPool -> TMVar Annex.AnnexState -> Annex.AnnexRead -> Annex a -> IO (Either SomeException a)
 annexActionRunner WorkerPoolRunner workerlimit workerpool _ _ =
@@ -936,10 +940,22 @@ openProxyConnectionToRemote
 openProxyConnectionToRemote clientmaxversion bypass remote = do
 	remoteside <- proxyRemoteSide clientmaxversion bypass remote
 	concurrencyconfig <- Proxy.noConcurrencyConfig
+	let closer = do
+		Proxy.closeRemoteSide remoteside
+		mv <- Annex.getRead Annex.activeremotes
+		liftIO $ debug "P2P.Http" ("PROXY REMOTE CLEANUP")
+		liftIO $ void $ takeMVar mv
+		liftIO $ putMVar mv mempty
+		Annex.changeState $ \s -> s
+                	{ Annex.remotes = []
+			}
+		quiesce True
+		liftIO $ performBlockingMajorGC
+		liftIO $ debug "P2P.Http" ("PROXY REMOTE CLEANUP OUT")
 	openedProxyConnection (Remote.uuid remote)
 		("remote " ++ Remote.name remote)
 		(Proxy.singleProxySelector remoteside)
-		(Proxy.closeRemoteSide remoteside)
+		closer
 		concurrencyconfig
 
 type ClusterConcurrency = Int
