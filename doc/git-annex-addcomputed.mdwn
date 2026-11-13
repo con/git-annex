@@ -30,7 +30,9 @@ output file. And multiple output files can be computed at the same time.
 Some examples of how this might look:
 
     git-annex addcomputed --to=x -- convert file.raw file.jpeg passes=10
+
     git-annex addcomputed --to=y -- compress foo --level=9
+
     git-annex addcomputed --to=z -- clip foo 2:01-3:00 combine with bar to baz
 
 Note that parameters that were passed to `git-annex initremote` 
