@@ -51,6 +51,7 @@ import Control.Concurrent.Async
 import Control.Concurrent.STM
 import Data.Time.Clock.POSIX
 import Data.Unique
+import System.Mem
 
 data P2PHttpServerState = P2PHttpServerState
 	{ servedRepos :: M.Map UUID PerRepoServerState
@@ -376,11 +377,11 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 		| connectionServerUUID connparams == myuuid =
 			localConnection relv connparams runner ready
 		| otherwise =
-			let proxykey = proxyConnectionPoolKey connparams
+			let proxykey = mkProxyConnectionKey connparams
 			in atomically (getProxyConnectionPool proxypool proxykey) >>= \case
 				Just conn -> do
 					proxyrunner <- getProxyRunner proxyworkermap proxykey
-					proxyConnection proxyconnectionpoolsize relv connparams proxyrunner proxypool conn ready
+					proxyConnection proxyconnectionpoolsize relv connparams proxyrunner proxypool proxyworkermap conn ready
 				Nothing -> checkcanproxy runnertype annexstate annexread myproxies proxypool proxykey relv connparams ready
 	  where
 		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
@@ -397,13 +398,13 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 				proxyconnection $
 					proxyrunner $ openProxyConnectionToRemote
 						(connectionProtocolVersion connparams)
-						bypass proxyremote
+						bypass proxyremote proxykey
 			Right (Right (Left clusteruuid)) -> do
 				proxyrunner <- getProxyRunner proxyworkermap proxykey
 				proxyconnection $
 					proxyrunner $ openProxyConnectionToCluster
 						(connectionProtocolVersion connparams)
-						bypass clusteruuid clusterconcurrency
+						bypass clusteruuid clusterconcurrency proxykey
 			Left ex -> return $ Left $
 				ConnectionFailed $ show ex
 	  where
@@ -411,7 +412,7 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 		bypass = P2P.Bypass $ S.fromList $ connectionBypass connparams
 		proxyconnection openconn = openconn >>= \case
 			Right conn -> proxyConnection proxyconnectionpoolsize
-				relv connparams runner proxypool conn ready
+				relv connparams runner proxypool proxyworkermap conn ready
 			Left ex -> return $ Left $
 				ConnectionFailed $ show ex
 
@@ -512,10 +513,11 @@ proxyConnection
 	-> ConnectionParams
 	-> (Annex () -> IO (Either SomeException ()))
 	-> TMVar ProxyConnectionPool
+	-> ProxyWorkerMap
 	-> ProxyConnection
 	-> TMVar ()
 	-> IO (Either ConnectionProblem P2PConnectionPair)
-proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyconn ready = do
+proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyworkermap proxyconn ready = do
 	(clientconn, proxyfromclientconn) <- 
 		mkP2PConnectionPair connparams ("http client", "proxy")
 	clientrunst <- mkClientRunState connparams
@@ -558,8 +560,8 @@ proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyco
 					now <- getPOSIXTime
 					evicted <- atomically $ putProxyConnectionPool proxypool proxyconnectionpoolsize connparams $
 						proxyconn { proxyConnectionLastUsed = now }
-					maybe noop closeproxyconnection evicted
-				else closeproxyconnection proxyconn
+					mapM_ (closeProxyConnection runner proxyworkermap) evicted
+				else closeProxyConnection runner proxyworkermap proxyconn
 			either throwM return r
 				
 	return $ Right $ P2PConnectionPair
@@ -577,10 +579,6 @@ proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyco
 	proxydone = return ()
 	
 	requestcomplete () = return ()
-	
-	closeproxyconnection p = void $ runner $ do
-		proxyConnectionCloser p
-		quiesce True 
 
 data Locker = Locker
 	{ lockerThread :: Async ()
@@ -870,6 +868,23 @@ quiesceAnnexWorker (workerid, workerstrd) = do
 			++ " failed: " ++ show ex
 		Right () -> return ()
 
+-- Close a proxy connection, and release resources used by the remote.
+closeProxyConnection :: (Annex () -> IO a) -> ProxyWorkerMap -> ProxyConnection -> IO ()
+closeProxyConnection runner proxyworkermap proxyconn = do
+	void $ runner $ do
+		proxyConnectionCloser proxyconn
+		quiesce True
+	-- As long as the ProxyWorkerMap still contains the AnnexState
+	-- that has the proxied Remote in it, the resources used
+	-- by that remote will not get closed.
+	atomically $ do
+		(maker, m) <- takeTMVar proxyworkermap
+		let !m' = M.delete (proxyConnectionKey proxyconn) m
+		putTMVar proxyworkermap (maker, m')
+	-- Force garbage collection to ensure that the all used resources
+	-- are promptly freed.
+	liftIO $ performBlockingMajorGC
+
 -- When there is a WorkerLimit, handleRequestAnnex may warm up
 -- an Annex state, starting helper processes, opening file handles etc.
 -- Quiesce it here to avoid one such Annex state per served repository
@@ -917,6 +932,7 @@ data ProxyConnection = ProxyConnection
 	, proxyConnectionCloser :: Annex ()
 	, proxyConnectionConcurrency :: Proxy.ConcurrencyConfig
 	, proxyConnectionLastUsed :: POSIXTime
+	, proxyConnectionKey :: ProxyConnectionKey
 	}
 
 instance Show ProxyConnection where
@@ -932,11 +948,12 @@ openedProxyConnection
 	-> Proxy.ProxySelector
 	-> Annex ()
 	-> Proxy.ConcurrencyConfig
+	-> ProxyConnectionKey
 	-> Annex ProxyConnection
-openedProxyConnection u desc selector closer concurrency = do
+openedProxyConnection u desc selector closer concurrency k = do
 	now <- liftIO getPOSIXTime
 	fastDebug "P2P.Http" ("Opened proxy connection to " ++ desc)
-	return $ ProxyConnection u selector closer' concurrency now
+	return $ ProxyConnection u selector closer' concurrency now k
   where
 	closer' = do
 		fastDebug "P2P.Http" ("Closing proxy connection to " ++ desc)
@@ -947,8 +964,9 @@ openProxyConnectionToRemote
 	:: P2P.ProtocolVersion
 	-> P2P.Bypass
 	-> Remote
+	-> ProxyConnectionKey
 	-> Annex ProxyConnection
-openProxyConnectionToRemote clientmaxversion bypass remote = do
+openProxyConnectionToRemote clientmaxversion bypass remote k = do
 	remoteside <- proxyRemoteSide clientmaxversion bypass remote
 	concurrencyconfig <- Proxy.noConcurrencyConfig
 	openedProxyConnection (Remote.uuid remote)
@@ -956,6 +974,7 @@ openProxyConnectionToRemote clientmaxversion bypass remote = do
 		(Proxy.singleProxySelector remoteside)
 		(Proxy.closeRemoteSide remoteside)
 		concurrencyconfig
+		k
 
 type ClusterConcurrency = Int
 
@@ -964,22 +983,23 @@ openProxyConnectionToCluster
 	-> P2P.Bypass
 	-> ClusterUUID
 	-> ClusterConcurrency
+	-> ProxyConnectionKey
 	-> Annex ProxyConnection
-openProxyConnectionToCluster clientmaxversion bypass clusteruuid concurrency = do
+openProxyConnectionToCluster clientmaxversion bypass clusteruuid concurrency k = do
 	(proxyselector, closenodes) <-
 		clusterProxySelector clusteruuid clientmaxversion bypass
 	concurrencyconfig <- Proxy.mkConcurrencyConfig concurrency
 	openedProxyConnection (fromClusterUUID clusteruuid)
 		("cluster " ++ fromUUID (fromClusterUUID clusteruuid))
-		proxyselector closenodes concurrencyconfig
+		proxyselector closenodes concurrencyconfig k
 
-type ProxyConnectionPool = (Integer, M.Map ProxyConnectionPoolKey [ProxyConnection])
+type ProxyConnectionPool = (Integer, M.Map ProxyConnectionKey [ProxyConnection])
 
 type ProxyConnectionPoolSize = Integer
 
-type ProxyWorkerMap = TMVar (AnnexWorkerMaker, M.Map ProxyConnectionPoolKey (TMVar Annex.AnnexState, Annex.AnnexRead))
+type ProxyWorkerMap = TMVar (AnnexWorkerMaker, M.Map ProxyConnectionKey (TMVar Annex.AnnexState, Annex.AnnexRead))
 
-getProxyRunner :: ProxyWorkerMap -> ProxyConnectionPoolKey -> IO (Annex a -> IO (Either SomeException a))
+getProxyRunner :: ProxyWorkerMap -> ProxyConnectionKey -> IO (Annex a -> IO (Either SomeException a))
 getProxyRunner v k = do
 	v'@(maker, m) <- atomically (takeTMVar v)
 	(stv, rd) <- case M.lookup k m of
@@ -1001,7 +1021,7 @@ putProxyConnectionPool
 	-> ProxyConnectionPoolSize
 	-> ConnectionParams
 	-> ProxyConnection
-	-> STM (Maybe ProxyConnection)
+	-> STM [ProxyConnection]
 putProxyConnectionPool proxypool maxsz connparams conn = do
 	(sz, m) <- takeTMVar proxypool
 	let ((sz', m'), evicted) = case M.lookup k m of
@@ -1014,9 +1034,9 @@ putProxyConnectionPool proxypool maxsz connparams conn = do
 		then removeOldestProxyConnectionPool (sz', m')
 		else ((sz', m'), Nothing)
 	putTMVar proxypool (sz'', m'')
-	return (evicted <|> evicted')
+	return $ catMaybes [evicted, evicted']
   where
-	k = proxyConnectionPoolKey connparams
+	k = mkProxyConnectionKey connparams
 
 removeOldestProxyConnectionPool :: ProxyConnectionPool -> (ProxyConnectionPool, Maybe ProxyConnection)
 removeOldestProxyConnectionPool (sz, m) = 
@@ -1029,7 +1049,7 @@ removeOldestProxyConnectionPool (sz, m) =
 
 getProxyConnectionPool
 	:: TMVar ProxyConnectionPool
-	-> ProxyConnectionPoolKey
+	-> ProxyConnectionKey
 	-> STM (Maybe ProxyConnection)
 getProxyConnectionPool proxypool k = do
 	(sz, m) <- takeTMVar proxypool
@@ -1041,10 +1061,10 @@ getProxyConnectionPool proxypool k = do
 			putTMVar proxypool (sz, m)
 			return Nothing
 
-type ProxyConnectionPoolKey = (UUID, UUID, [UUID], P2P.ProtocolVersion)
+type ProxyConnectionKey = (UUID, UUID, [UUID], P2P.ProtocolVersion)
 
-proxyConnectionPoolKey :: ConnectionParams -> ProxyConnectionPoolKey
-proxyConnectionPoolKey connparams =
+mkProxyConnectionKey :: ConnectionParams -> ProxyConnectionKey
+mkProxyConnectionKey connparams =
 	( connectionServerUUID connparams
 	, connectionClientUUID connparams
 	, connectionBypass connparams
