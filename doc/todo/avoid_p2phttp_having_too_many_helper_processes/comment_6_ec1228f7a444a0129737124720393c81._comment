@@ -3,17 +3,7 @@
  subject="""comment 6"""
  date="2026-11-12T18:59:57Z"
  content="""
-Got this implemented, except for proxied remotes which
-get --proxyconnections connections per repository. Leaving the todo open
-for that.
+Got this implemented, except for proxied remotes. 
 
-It may be that the GC hack is not actually needed to solve that. (Whew!)
-
-The ProxyConnectionPool already supports evicting old connections as
-needed, which will shut down proxied remotes cleanly. Just need to
-make a single ProxyConnectionPool be shared amoung each repository state,
-rather than each having its own pool.
-
-And change the meaning of --proxyconnections to be not maximum
-per repository, but overall. Then it can become a simple quantiry semaphore.
+Leaving the todo open for that.
 """]]
