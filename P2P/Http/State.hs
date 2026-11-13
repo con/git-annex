@@ -97,7 +97,7 @@ type GetServerMode = IsSecure -> Maybe Auth -> ServerMode
 
 data ServerMode
 	= ServerMode
-	{ serverMode :: P2P.ServerMode
+		{ serverMode :: P2P.ServerMode
 		, unauthenticatedLockingAllowed :: Bool
 		, authenticationAllowed :: Bool
 		}
