@@ -21,12 +21,24 @@ I think that --proxyconnections can stay as an idle connections cache
 limit rather than an upper bound on the number of active connections.
 But make it be across all served repos, rather than per-repo.
 
-Add a cap on the number of total proxy connections. It could be the same as
-the number of jobs.
+It seems ok for the total number of proxy connections across all
+repostories to be capped by the existing limits on the things that
+use them. Basically that is `--jobs + --lockedfiles`. (With clusters,
+`--jobs * --clusterjobs + --lockfiles`)
 
-It may make sense to have a separate AnnexWorkerPool that is used only for
-proxy connections, and where each Annex state is used for a single
-proxied connection. That way, when a proxied connection is evicted from
-the pool, quiesce can be used to stop only it, and not other proxied
-connections.
+There needs to be a Map from a proxy remote to Annex state. When opening a
+proxy connection, do it in the Annex state for that particular proxy
+remote. That way, when a proxied connection is evicted from the pool,
+quiesce can be used to stop it, without also stopping other proxied
+connections or other stuff.
+
+---
+
+Update:
+
+In `p2phttpchill` I've done some work toward the above now. Implemented
+the proxy Map, and quiescing and GC.
+
+There seems to be a bug left, where more than --proxyconnections proxies
+can be left running sometimes.
 """]]
