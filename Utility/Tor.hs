@@ -6,6 +6,7 @@
  -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
 
 module Utility.Tor (
 	OnionPort,
@@ -29,7 +30,7 @@ import System.PosixCompat.Types
 import System.PosixCompat.Files (ownerReadMode, ownerWriteMode, ownerExecuteMode)
 import Data.Char
 import Network.Socket
-import Network.Socks5
+import "socks" Network.Socks5
 import qualified Data.ByteString.UTF8 as BU8
 import qualified System.Random as R
 
