@@ -24,7 +24,7 @@ git-annex (10.20261113) upstream; urgency=medium
   * Fix testremote failure with p2phttp remote.
     (Reversion from 10.20261005)
 
- -- Joey Hess <id@joeyh.name>  Thu, 12 Nov 2026 15:51:18 -0400
+ -- Joey Hess <id@joeyh.name>  Fri, 13 Nov 2026 14:08:26 -0400
 
 git-annex (10.20261026) upstream; urgency=high
 
