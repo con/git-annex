@@ -736,6 +736,7 @@ data AnnexWorkerLimit
 		-- stops helper processes that are in resource pools
 		-- set up by dupState and shared with other AnnexWorkers.
 		-- So this must not use dupState.
+		, workerLimitName :: Maybe String
 		}
 
 -- Workers that are not in use, but that have been warmed up: They have
@@ -746,11 +747,17 @@ mkAnnexWorkerLimit :: IO AnnexWorkerLimit
 mkAnnexWorkerLimit = WorkerLimit 
 	<$> newTMVarIO (1, emptyLRU)
 	<*> pure Nothing
+	<*> pure Nothing
 
 setAnnexWorkerLimitMaker :: IO AnnexWorker -> AnnexWorkerLimit -> AnnexWorkerLimit
 setAnnexWorkerLimitMaker maker workerlimit@(WorkerLimit {}) =
 	workerlimit { makeNewWorker = Just maker }
-setAnnexWorkerLimitMaker _ _ = error "internal"
+setAnnexWorkerLimitMaker _ workerlimit = workerlimit
+
+setAnnexWorkerLimitName :: String -> AnnexWorkerLimit -> AnnexWorkerLimit
+setAnnexWorkerLimitName name workerlimit@(WorkerLimit {}) =
+	workerlimit { workerLimitName = Just name }
+setAnnexWorkerLimitName _ workerlimit = workerlimit
 
 setAnnexWorkerLimit :: AnnexWorkerLimit -> Int -> IO ()
 setAnnexWorkerLimit WorkerLimit { workerLimit = v } nworkers =
@@ -758,6 +765,15 @@ setAnnexWorkerLimit WorkerLimit { workerLimit = v } nworkers =
 		(_, lru) <- takeTMVar v
 		putTMVar v (nworkers, lru)
 setAnnexWorkerLimit NoWorkerLimit _ = noop
+
+describeAnnexWorker :: AnnexWorkerLimit -> Unique -> String
+describeAnnexWorker (WorkerLimit { workerLimitName = Just name }) workerid =
+	name ++ " " ++ descibeAnnexWorker' workerid
+describeAnnexWorker _ workerid =
+	descibeAnnexWorker' workerid
+
+descibeAnnexWorker' :: Unique -> String
+descibeAnnexWorker' workerid = "#" ++ show (hashUnique workerid)
 
 {- Allocate a new annex worker.
  - If necessary, first quiesces the least recently used one.
@@ -812,12 +828,12 @@ allocatedAnnexWorker workerlimit a r =
 	observe reportworkerid $ case r of
 		Right res -> return res
 		Left toquiesce -> do
-			quiesceAnnexWorker toquiesce
+			quiesceAnnexWorker workerlimit toquiesce
 			atomically $ postQueusceAnnexWorker workerlimit a
   where
 	reportworkerid ((_, workerid), _) =
-		debug "P2P.Http" $ "using worker "
-			++ show (hashUnique workerid)
+		debug "P2P.Http" $ "Using worker "
+			++ describeAnnexWorker workerlimit workerid
 
 postQueusceAnnexWorker
 	:: AnnexWorkerLimit
@@ -841,17 +857,17 @@ deallocateAnnexWorker (WorkerLimit { workerLimit = v }) worker workerid = do
 
 -- Make an Annex worker no longer be warmed up, by stopping all
 -- helper processes, closing file handles, etc.
-quiesceAnnexWorker :: (Unique, AnnexWorker) -> IO ()
-quiesceAnnexWorker (workerid, workerstrd) = do
-	debug "P2P.Http" $ "quiesceing worker "
-		++ show (hashUnique workerid)
+quiesceAnnexWorker :: AnnexWorkerLimit -> (Unique, AnnexWorker) -> IO ()
+quiesceAnnexWorker workerlimit (workerid, workerstrd) = do
+	debug "P2P.Http" $ "Quiesceing worker "
+		++ describeAnnexWorker workerlimit workerid
 	-- This discards the changed state, so the only things it can
 	-- safely do are those that do not alter state.
 	res <- tryNonAsync $ Annex.eval workerstrd $
 		quiesce True 
 	case res of
-		Left ex -> debug "P2P.Http" $ "quiesceing worker "
-			++ show (hashUnique workerid) 
+		Left ex -> debug "P2P.Http" $ "Quiesceing worker "
+			++ describeAnnexWorker workerlimit workerid
 			++ " failed: " ++ show ex
 		Right () -> return ()
 
