@@ -48,8 +48,7 @@ the parameters provided to `git-annex addcomputed`.
   This must be a compute remote. For example, one can be
   initialized with:
 
-    git-annex initremote photoconv type=compute \
-        program=git-annex-compute-photoconv
+    git-annex initremote photoconv type=compute program=git-annex-compute-photoconv
 
   For details about compute remotes, and a list of some
   of the programs that are available, see
