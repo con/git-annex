@@ -44,12 +44,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Haskell
-        uses: haskell-actions/setup@v2
-        with:
-          enable-stack: true
-          stack-no-global: true
-
       - name: Handle long filenames
         run: git config --system core.longpaths true
 
@@ -89,50 +83,99 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download and "install" libmagic for windows
+      # The Windows build follows the recipe of upstream's author (cabal with
+      # the stackage-pinned cabal-stackage.project, and libraries from the
+      # MINGW64 environment of the runner's MSYS2), see
+      # https://github.com/psychoinformatics-de/git-annex-wheel/pull/28
+      - name: Configure build environment
+        id: buildenv
         run: |
-          gh release download -R datalad/file-windows -p file-windows-dist.zip
-          unzip file-windows-dist.zip
-          cp libmagic-1.dll libmagic.dll
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          cp cabal-stackage.project cabal.project
+          ghc_version="$(sed -n -e 's/^with-compiler: *ghc-//p' cabal-stackage.config | tr -d '\r')"
+          test -n "$ghc_version"
+          echo "ghc-version=$ghc_version" >> "$GITHUB_OUTPUT"
+          {
+            echo "PKG_CONFIG_ALLOW_SYSTEM_CFLAGS=1"
+            echo "PKG_CONFIG_ALLOW_SYSTEM_LIBS=1"
+            # This tells git-annex where to upgrade itself from.
+            echo "UPGRADE_LOCATION=http://downloads.kitenet.net/git-annex/windows/current/git-annex-installer.exe"
+          } >> "$GITHUB_ENV"
+          echo 'C:\msys64\mingw64\bin' >> "$GITHUB_PATH"
 
-      - name: Enable building with magic
+      - name: Install pkg-config, libmagic and Botan
         run: |
-          perl -pli -e 's/magicmime: false/magicmime: true/' stack.yaml
+          ghcup run -m -- pacman -Sy --noconfirm --needed \
+            mingw-w64-x86_64-pkg-config \
+            mingw-w64-x86_64-file \
+            mingw-w64-x86_64-libbotan
+          pkg-config --modversion libmagic botan-3
+          # Build/NullSoftInstaller.hs bundles magic.mgc from the current directory
+          cp /c/msys64/mingw64/share/misc/magic.mgc .
 
-      - name: Set UPGRADE_LOCATION
-        run: |
-          # This tells git-annex where to upgrade itself from.
-          echo "UPGRADE_LOCATION=http://downloads.kitenet.net/git-annex/windows/current/git-annex-installer.exe" >> "$GITHUB_ENV"
-
-      - name: Run stack --version
-        run: stack --version
-
-      - name: stack setup
-        run: stack setup
-
-      # At this point, stack.yaml.lock exists, so we can activate the cache
-
-      - name: Enable Stack cache
-        uses: actions/cache@v6
+      - name: Setup Haskell
+        id: setup-haskell
+        uses: haskell-actions/setup@v2
         with:
-          path: 'C:\sr\snapshots'
-          key: cache-stack-windows-${{ hashFiles('stack.yaml.lock') }}-${{ hashFiles('git-annex.cabal') }}
+          ghc-version: ${{ steps.buildenv.outputs.ghc-version }}
+          cabal-version: '3.16'
+
+      - name: cabal configure
+        run: |
+          cabal configure \
+            --extra-prog-path=C:/msys64/mingw64/bin \
+            --extra-include-dirs=C:/msys64/mingw64/include \
+            --extra-lib-dirs=C:/msys64/mingw64/lib
+
+      # Generates dist-newstyle/cache/plan.json, used as the cache key
+      - name: Generate cabal plan
+        run: cabal build all --dry-run
+
+      - name: Restore cached dependencies
+        id: cache-cabal
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: cache-cabal-windows-${{ hashFiles('dist-newstyle/cache/plan.json') }}
           restore-keys: |
-            cache-stack-windows-
+            cache-cabal-windows-
 
       - name: Build dependencies
-        run: stack build --only-dependencies --extra-include-dirs=$PWD --extra-lib-dirs=$PWD
+        run: cabal build --only-dependencies
+
+      - name: Cache dependencies
+        if: steps.cache-cabal.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: ${{ steps.cache-cabal.outputs.cache-primary-key }}
+
+      - name: Build git-annex
+        run: |
+          cabal build
+          cp "$(cabal list-bin git-annex)" ./git-annex.exe
+
+      # Build/NullSoftInstaller.hs bundles *.dll from the current directory.
+      # Having them next to git-annex.exe also makes it use them, and not
+      # DLLs of the same name which Git Bash has earlier in PATH.
+      - name: Copy linked DLLs
+        run: |
+          PATH="/c/msys64/mingw64/bin:$PATH" ldd ./git-annex.exe > ldd.txt
+          cat ldd.txt
+          if grep 'not found' ldd.txt; then
+            echo "::error::Some DLLs git-annex.exe is linked to were not found"
+            exit 1
+          fi
+          awk '$3 ~ /\/msys64\// {print $3}' ldd.txt | sort -u > dlls.txt
+          grep -q 'libbotan-3' dlls.txt
+          grep -q 'libmagic' dlls.txt
+          cp -v $(cat dlls.txt) .
+          rm ldd.txt dlls.txt
 
       - name: Update version info for git rev being built.
         run: |
+          ./git-annex version
           mkdir -p dist
-          stack ghc --no-haddock Build/BuildVersion.hs
-          ./Build/BuildVersion > dist/build-version
-
-      - name: Build git-annex
-        run: stack install --no-haddock --local-bin-path .
+          ./git-annex version --raw > dist/build-version
 
       - name: Install NSIS
         shell: pwsh
@@ -142,8 +185,11 @@ jobs:
 
       - name: Build the installer
         run: |
-          stack ghc --no-haddock --package nsis Build/NullSoftInstaller.hs
-          TMP="$PWD" ./Build/NullSoftInstaller
+          # Since upstream c20567a9 (2026-10-30) the installer builder is no
+          # longer a standalone program, but a part of the multicall git-annex
+          cp git-annex.exe nullsoft-installer.exe
+          TMP="$PWD" ./nullsoft-installer
+          rm nullsoft-installer.exe
 
       - name: Add version to installer name
         run: |
@@ -252,8 +298,11 @@ jobs:
           GIT_ANNEX_PATH="$(type -p git-annex)"
           echo "git-annex is at $GIT_ANNEX_PATH"
           GIT_ANNEX_DIR="$(dirname "$GIT_ANNEX_PATH")"
-          ls "$GIT_ANNEX_DIR"/*magic* "$GIT_ANNEX_DIR"/*gnurx*
+          ls "$GIT_ANNEX_DIR"/*magic*
           ls "$GIT_ANNEX_DIR"/../share/misc/*magic*
+
+      - name: Check that Botan is installed
+        run: ls "$(dirname "$(type -p git-annex)")"/libbotan-3*.dll
 
 
       - name: Check git-annex version for some expected build flags
