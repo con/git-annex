@@ -153,17 +153,13 @@ jobs:
         run: |
           cabal build
           cp "$(cabal list-bin git-annex)" ./git-annex.exe
-          ./git-annex version
 
-      - name: Update version info for git rev being built.
-        run: |
-          mkdir -p dist
-          ./git-annex version --raw > dist/build-version
-
-      # Build/NullSoftInstaller.hs bundles *.dll from the current directory
+      # Build/NullSoftInstaller.hs bundles *.dll from the current directory.
+      # Having them next to git-annex.exe also makes it use them, and not
+      # DLLs of the same name which Git Bash has earlier in PATH.
       - name: Copy linked DLLs
         run: |
-          ldd ./git-annex.exe > ldd.txt
+          PATH="/c/msys64/mingw64/bin:$PATH" ldd ./git-annex.exe > ldd.txt
           cat ldd.txt
           if grep 'not found' ldd.txt; then
             echo "::error::Some DLLs git-annex.exe is linked to were not found"
@@ -174,6 +170,12 @@ jobs:
           grep -q 'libmagic' dlls.txt
           cp -v $(cat dlls.txt) .
           rm ldd.txt dlls.txt
+
+      - name: Update version info for git rev being built.
+        run: |
+          ./git-annex version
+          mkdir -p dist
+          ./git-annex version --raw > dist/build-version
 
       - name: Install NSIS
         shell: pwsh
