@@ -29,10 +29,9 @@ Here is a plan:
 * botan lacks skein and blake2, so would get those hashes another
   way to avoid needing crypton for them
 * Switch from http-client-tls to http-client-openssl.
-* Switch from warp-tls to warp-s2n-tls? Alternatively, warp-tls is only used by
-  the webapp and p2phttp; the webapp is mostly used on localhost and
-  p2phttp is often used behind a server (eg forgejo) that can handle the
-  https if it only supported http.
+  But: openssl now contains LLM generated code, so this would
+  need the NoLLMDependencies build flag to keep using http-client-tls
+  (with old crypton/cryptonite).
 * aws depends on http-client-tls, but only uses it in its test suite;
   the library uses the Manager that the user passes in.
   So it would be possible to depend on aws w/o getting http-client-tls as a
@@ -42,3 +41,10 @@ Here is a plan:
   mkDAVContext. (The context can be updated after the fact to use a
   http-client-tls manager, but it still uses http-client-tls first to make
   one.)
+* Switch from warp-tls to warp-s2n-tls? 
+  But: Both s2n-tls haskell bindings and the s2n-tls C library now
+  contain LLM generated code, so this would need the NoLLMDependencies
+  build flag to keep using warp-tls (with old crypton/cryptonite).
+* Alternatively, warp-tls is only used by the webapp and p2phttp; the
+  webapp is mostly used on localhost and p2phttp is often used behind a
+  server (eg forgejo) that can handle the https if it only supported http.
