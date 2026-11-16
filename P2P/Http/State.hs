@@ -318,9 +318,9 @@ mkP2PHttpServerState
 	-> TMVar ProxyConnectionPool
 	-> AnnexWorkerLimit	
 	-> AnnexWorkerPool
-	-> ProxyWorkerMap
+	-> ProxyRunnerMap
 	-> Annex P2PHttpServerState
-mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterconcurrency lockedfilesqsem proxypool workerlimit workerpool proxyworkermap = do
+mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterconcurrency lockedfilesqsem proxypool workerlimit workerpool proxyrunnermap = do
 	enableInteractiveBranchAccess
 	myuuid <- getUUID
 	myproxies <- M.lookup myuuid <$> getProxies
@@ -379,8 +379,8 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 			let proxykey = mkProxyConnectionKey connparams
 			in atomically (getProxyConnectionPool proxypool proxykey) >>= \case
 				Just conn -> do
-					proxyrunner <- proxyRunner <$> getProxyRunner proxyworkermap proxykey
-					proxyConnection proxyconnectionpoolsize relv connparams proxyrunner proxypool proxyworkermap conn ready
+					proxyrunner <- proxyRunner <$> getProxyRunner proxyrunnermap proxykey
+					proxyConnection proxyconnectionpoolsize relv connparams proxyrunner proxypool proxyrunnermap conn ready
 				Nothing -> checkcanproxy runnertype annexstate annexread myproxies proxykey relv connparams ready
 	  where
 		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
@@ -406,10 +406,10 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
 		bypass = P2P.Bypass $ S.fromList $ connectionBypass connparams
 		proxyconnection openconn = do
-			proxyrunner <- getProxyRunner proxyworkermap proxykey
+			proxyrunner <- getProxyRunner proxyrunnermap proxykey
 			(proxyRunner proxyrunner) openconn >>= \case
 				Right conn -> proxyConnection proxyconnectionpoolsize
-					relv connparams (proxyRunner proxyrunner) proxypool proxyworkermap conn ready
+					relv connparams (proxyRunner proxyrunner) proxypool proxyrunnermap conn ready
 				Left ex -> return $ Left $
 					ConnectionFailed $ show ex
 
@@ -510,11 +510,11 @@ proxyConnection
 	-> ConnectionParams
 	-> (Annex () -> IO (Either SomeException ()))
 	-> TMVar ProxyConnectionPool
-	-> ProxyWorkerMap
+	-> ProxyRunnerMap
 	-> ProxyConnection
 	-> TMVar ()
 	-> IO (Either ConnectionProblem P2PConnectionPair)
-proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyworkermap proxyconn ready = do
+proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyrunnermap proxyconn ready = do
 	(clientconn, proxyfromclientconn) <- 
 		mkP2PConnectionPair connparams ("http client", "proxy")
 	clientrunst <- mkClientRunState connparams
@@ -557,8 +557,8 @@ proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxywo
 					now <- getPOSIXTime
 					evicted <- atomically $ putProxyConnectionPool proxypool proxyconnectionpoolsize connparams $
 						proxyconn { proxyConnectionLastUsed = now }
-					mapM_ (closeProxyConnection runner proxyworkermap) evicted
-				else closeProxyConnection runner proxyworkermap proxyconn
+					mapM_ (closeProxyConnection runner proxyrunnermap) evicted
+				else closeProxyConnection runner proxyrunnermap proxyconn
 			either throwM return r
 				
 	return $ Right $ P2PConnectionPair
@@ -681,7 +681,7 @@ withAnnexWorkerPool
 	-> Maybe Cpus
 	-> AnnexWorkerLimit
 	-> AnnexWorkerMaker
-	-> (AnnexWorkerPool -> ProxyWorkerMap -> Annex a)
+	-> (AnnexWorkerPool -> ProxyRunnerMap -> Annex a)
 	-> Annex a
 withAnnexWorkerPool mconc mcpus workerlimit maker a = do
 	maybe noop setCpus mcpus
@@ -701,8 +701,8 @@ withAnnexWorkerPool mconc mcpus workerlimit maker a = do
 	use mkp = do
 		tp <- liftIO $ taggedWorkerPool =<< mkp
 		awp <- liftIO $ newTMVarIO tp
-		proxyworkermap <- liftIO $ newTMVarIO (maker, mempty)
-		a awp proxyworkermap
+		proxyrunnermap <- liftIO $ newTMVarIO (maker, mempty)
+		a awp proxyrunnermap
 
 inAnnexWorker :: AnnexWorkerLimit -> AnnexWorkerPool -> Annex a -> IO (Either SomeException a)
 inAnnexWorker workerlimit poolv annexaction =
@@ -880,15 +880,15 @@ quiesceAnnexWorker workerlimit (workerid, workerstrd) = do
 		Right () -> return ()
 
 -- Close a proxy connection, and release resources used by the remote.
-closeProxyConnection :: (Annex () -> IO a) -> ProxyWorkerMap -> ProxyConnection -> IO ()
-closeProxyConnection runner proxyworkermap proxyconn = do
+closeProxyConnection :: (Annex () -> IO a) -> ProxyRunnerMap -> ProxyConnection -> IO ()
+closeProxyConnection runner proxyrunnermap proxyconn = do
 	void $ runner $ do
 		proxyConnectionCloser proxyconn
 		quiesce True
 	atomically $ do
-		(maker, m) <- takeTMVar proxyworkermap
+		(maker, m) <- takeTMVar proxyrunnermap
 		let !m' = M.delete (proxyConnectionKey proxyconn) m
-		putTMVar proxyworkermap (maker, m')
+		putTMVar proxyrunnermap (maker, m')
 
 -- When there is a WorkerLimit, handleRequestAnnex may warm up
 -- an Annex state, starting helper processes, opening file handles etc.
@@ -1002,28 +1002,27 @@ type ProxyConnectionPool = (Integer, M.Map ProxyConnectionKey [ProxyConnection])
 
 type ProxyConnectionPoolSize = Integer
 
-type ProxyWorkerMap = TMVar (AnnexWorkerMaker, M.Map ProxyConnectionKey (TMVar Annex.AnnexState, Annex.AnnexRead))
+type ProxyRunnerMap = TMVar (AnnexWorkerMaker, M.Map ProxyConnectionKey ProxyRunner)
 
 mkProxyConnectionPool :: IO (TMVar ProxyConnectionPool)
 mkProxyConnectionPool = newTMVarIO (0, mempty)
 
 data ProxyRunner = ProxyRunner (TMVar Annex.AnnexState) Annex.AnnexRead
 
-getProxyRunner :: ProxyWorkerMap -> ProxyConnectionKey -> IO ProxyRunner
+getProxyRunner :: ProxyRunnerMap -> ProxyConnectionKey -> IO ProxyRunner
 getProxyRunner v k = do
 	v'@(maker, m) <- atomically (takeTMVar v)
-	(stv, rd) <- case M.lookup k m of
-		Just worker -> do
+	case M.lookup k m of
+		Just runner -> do
 			atomically $ putTMVar v v'
-			return worker
+			return runner
 		Nothing -> do
 			(st, rd) <- maker
 				`onException` atomically (putTMVar v v')
 			stv <- newTMVarIO st
-			let worker = (stv, rd)
-			atomically $ putTMVar v (maker, M.insert k worker m)
-			return worker
-	return $ ProxyRunner stv rd
+			let runner = ProxyRunner stv rd
+			atomically $ putTMVar v (maker, M.insert k runner m)
+			return runner
 
 proxyRunner :: ProxyRunner -> Annex a -> IO (Either SomeException a)
 proxyRunner (ProxyRunner stv rd) = handleRequestAnnex' stv rd
