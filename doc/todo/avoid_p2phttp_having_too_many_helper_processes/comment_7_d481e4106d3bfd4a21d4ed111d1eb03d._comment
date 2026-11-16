@@ -1,0 +1,44 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 7"""
+ date="2026-11-13T11:48:07Z"
+ content="""
+The situation with proxied remotes is:
+
+* --proxyconnections is the number of *idle* connections to cache.
+  It is not a cap on the maximum number. If two requests come in to two
+  different proxied remotes, a connection will be started to both,
+  and once both are done, one of them will remain cached.
+* --proxyconnections is per-repository, so even if it were an upper bound,
+  there could be a lot of processes for proxied external special remotes
+* Evicting a proxied connection from the pool doesn't stop the external
+  special remote process. This is because Remote.list is still populated,
+  and also Remote.External registers a cleanup action that stops it --
+  which is another reference and keeps it running until quiesce.
+  (I have a proof of concept fix for this in `p2phttpchill`.)
+
+I think that --proxyconnections can stay as an idle connections cache
+limit rather than an upper bound on the number of active connections.
+But make it be across all served repos, rather than per-repo.
+
+It seems ok for the total number of proxy connections across all
+repostories to be capped by the existing limits on the things that
+use them. Basically that is `--jobs + --lockedfiles`. (With clusters,
+`--jobs * --clusterjobs + --lockfiles`)
+
+There needs to be a Map from a proxy remote to Annex state. When opening a
+proxy connection, do it in the Annex state for that particular proxy
+remote. That way, when a proxied connection is evicted from the pool,
+quiesce can be used to stop it, without also stopping other proxied
+connections or other stuff.
+
+---
+
+Update:
+
+In `p2phttpchill` I've done some work toward the above now. Implemented
+the proxy Map, and quiescing and GC.
+
+There seems to be a bug left, where more than --proxyconnections proxies
+can be left running sometimes.
+"""]]

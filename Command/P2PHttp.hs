@@ -164,6 +164,7 @@ startIO o
 			strd <- Annex.new r
 			Annex.eval strd $ do
 				maker <- liftIO . mkAnnexWorkerMaker =<< Annex.gitRepo
+				let workerlimit' = setAnnexWorkerLimitName (Git.repoDescribe r) workerlimit
 				mkstannex authenv oldst lockedfilesqsem
 					workerlimit maker
 		return (mconcat sts)

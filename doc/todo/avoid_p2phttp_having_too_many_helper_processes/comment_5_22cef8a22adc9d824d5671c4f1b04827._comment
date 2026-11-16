@@ -1,0 +1,12 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 5"""
+ date="2026-11-12T15:04:35Z"
+ content="""
+> Question: PerRepoServerState also has an annexState and annexRead that are
+> not part of the AnnexWorkerPool so would not be affected by that.
+> Are those used anywhere that spawns helper processes?
+
+Unfortunately, it appears that they are. A `git cat-file` helper process
+is started outside the AnnexWorkerPool, so there is one per served repository.
+"""]]

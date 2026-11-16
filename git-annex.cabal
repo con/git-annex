@@ -1,5 +1,5 @@
 Name: git-annex
-Version: 10.20261105
+Version: 10.20261113
 Cabal-Version: 1.12
 License: AGPL-3
 Maintainer: Joey Hess <id@joeyh.name>
@@ -325,7 +325,7 @@ Executable git-annex
   if flag(Memory)
     Build-Depends: memory, crypton (< 1.1.0)
   else
-    Build-Depends: ram, crypton (>= 1.1.0)
+    Build-Depends: memory, ram, crypton (>= 1.1.0)
 
   -- Fully optimize for production.
   if flag(Production)
