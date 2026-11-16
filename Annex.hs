@@ -96,8 +96,6 @@ import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import Data.Time.Clock.POSIX
 
-import Data.Unique
-
 {- git-annex's monad is a ReaderT around an AnnexState stored in a MVar,
  - and an AnnexRead. The MVar is not exposed outside this module.
  -
@@ -236,14 +234,12 @@ data AnnexState = AnnexState
 	, getvectorclock :: IO CandidateVectorClock
 	, proxyremote :: Maybe (Either ClusterUUID (Types.Remote.RemoteA Annex))
 	, reposizehandle :: Maybe RepoSizeHandle
-	, annexunique :: Unique
 	}
 
 newAnnexState :: GitConfig -> Git.Repo -> IO AnnexState
 newAnnexState c r = do
 	o <- newMessageState
 	vc <- startVectorClock
-	u <- newUnique
 	return $ AnnexState
 		{ repo = r
 		, repoadjustment = return
@@ -299,7 +295,6 @@ newAnnexState c r = do
 		, getvectorclock = vc
 		, proxyremote = Nothing
 		, reposizehandle = Nothing
-		, annexunique = u
 		}
 
 {- Makes an Annex state and read objects for the specified git repo.
