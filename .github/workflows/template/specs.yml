@@ -20,6 +20,10 @@
   cron_hour: '01'
   runs_on: macos-15-intel
   arch: x64
+  # No Homebrew bottles for Intel macOS: build (and cache) Botan ourselves
+  botan_from_source:
+    version: 3.14.1
+    sha256: 5b85cba0f014d344eb8e9919aee0a3bdc31e16acb05816410025be9bee1e0930
   env:
     LANG: C
   test_annex_flavors: [normal, crippled-tmp, custom-config1]

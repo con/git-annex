@@ -56,6 +56,66 @@ jobs:
             echo "C_INCLUDE_PATH=${HOMEBREW_PREFIX}/include:${C_INCLUDE_PATH:-}"
           } >> "$GITHUB_ENV"
 
+      # Since the 20261104 runner image some bundled program links to
+      # Homebrew's libcurl, and through it to libbrotlidec, which refers to
+      # @rpath/libbrotlicommon.1.dylib.  git-annex's Build/OSXMkLibs.hs cannot
+      # expand @rpath of a library (only of an executable) and fails with
+      # "cp: ./@rpath/libbrotlicommon.1.dylib: No such file or directory".
+      # Make such references absolute.
+      - name: Make Homebrew's brotli libraries refer to each other by absolute path
+        run: |
+          if brotli="$(brew --prefix brotli 2>/dev/null)" && [ -d "$brotli/lib" ]; then
+            for lib in "$brotli"/lib/libbrotli{dec,enc}.1.dylib; do
+              [ -f "$lib" ] || continue
+              otool -L "$lib"
+              if otool -L "$lib" | grep -q '@rpath/libbrotlicommon'; then
+                chmod u+w "$lib"
+                install_name_tool \
+                  -change @rpath/libbrotlicommon.1.dylib "$brotli/lib/libbrotlicommon.1.dylib" \
+                  "$lib"
+                codesign --force --sign - "$lib"
+                otool -L "$lib"
+              fi
+            done
+          fi
+
+      # git-annex requires Botan 3 since 10.20261105.  Homebrew provides no
+      # bottles for Intel macOS, so `brew install botan` would build it and
+      # its dependencies (python, openssl, ...) from source on every run.
+      # Build just Botan ourselves instead, and cache the result.
+      - name: Restore cached Botan
+        id: cache-botan
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/botan
+          key: botan-3.14.1-macos-15-intel
+
+      - name: Build Botan
+        if: steps.cache-botan.outputs.cache-hit != 'true'
+        run: |
+          curl -fsSL -o Botan.tar.xz "https://botan.randombit.net/releases/Botan-3.14.1.tar.xz"
+          echo "5b85cba0f014d344eb8e9919aee0a3bdc31e16acb05816410025be9bee1e0930  Botan.tar.xz" | shasum -a 256 -c -
+          tar xJf Botan.tar.xz
+          cd "Botan-3.14.1"
+          python3 configure.py --prefix="$HOME/botan" --build-targets=shared --without-documentation
+          make -j"$(sysctl -n hw.ncpu)"
+          make install
+        working-directory: ${{ runner.temp }}
+
+      # Save right away, so that a later failure of the job does not cost a
+      # rebuild of Botan on the next run
+      - name: Cache Botan
+        if: steps.cache-botan.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/botan
+          key: ${{ steps.cache-botan.outputs.cache-primary-key }}
+
+      - name: Make Botan available to the build
+        run: |
+          echo "PKG_CONFIG_PATH=$HOME/botan/lib/pkgconfig:$PKG_CONFIG_PATH" >> "$GITHUB_ENV"
+          PKG_CONFIG_PATH="$HOME/botan/lib/pkgconfig:$PKG_CONFIG_PATH" pkg-config --modversion botan-3
+
       - name: Setup Haskell
         uses: haskell-actions/setup@v2
         with:
