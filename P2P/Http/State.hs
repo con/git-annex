@@ -379,39 +379,11 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 			let proxykey = mkProxyConnectionKey connparams
 			in atomically (getProxyConnectionPool proxypool proxykey) >>= \case
 				Just conn -> do
-					proxyrunner <- proxyRunner <$> getProxyRunner proxyrunnermap proxykey
+					proxyrunner <- getProxyRunner proxyrunnermap proxykey
 					proxyConnection proxyconnectionpoolsize relv connparams proxyrunner proxypool proxyrunnermap conn ready
-				Nothing -> checkcanproxy myproxies proxykey relv connparams ready
+				Nothing -> openProxyConnection myproxies proxyrunnermap proxypool proxyconnectionpoolsize clusterconcurrency proxykey relv connparams ready
 	  where
 		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
-
-	checkcanproxy myproxies proxykey relv connparams ready = do
-		proxyrunner <- getProxyRunner proxyrunnermap proxykey
-		let unusable reason = do
-			void $ (proxyRunner proxyrunner) (quiesce True)
-			return $ Left $ ConnectionFailed reason
-		(proxyRunner proxyrunner)
-			(checkCanProxy' myproxies (connectionServerUUID connparams)) >>= \case
-				Right (Right (Right proxyremote)) ->
-					proxyconnection proxyrunner $ openProxyConnectionToRemote
-						(connectionProtocolVersion connparams)
-						bypass proxyremote proxykey
-				Right (Right (Left clusteruuid)) ->
-					proxyconnection proxyrunner $ openProxyConnectionToCluster
-						(connectionProtocolVersion connparams)
-						bypass clusteruuid clusterconcurrency proxykey
-				Right (Left reason) -> 
-					unusable $ fromMaybe "unknown uuid" reason
-				Left ex ->
-					unusable $ show ex
-	  where
-		bypass = P2P.Bypass $ S.fromList $ connectionBypass connparams
-		proxyconnection proxyrunner openconn =
-			(proxyRunner proxyrunner) openconn >>= \case
-				Right conn -> proxyConnection proxyconnectionpoolsize
-					relv connparams (proxyRunner proxyrunner) proxypool proxyrunnermap conn ready
-				Left ex -> return $ Left $
-					ConnectionFailed $ show ex
 
 data P2PConnectionPair = P2PConnectionPair
 	{ clientRunState :: RunState
@@ -424,6 +396,45 @@ data P2PConnectionPair = P2PConnectionPair
 	-- ^ Closes a P2P connection, which is in a state where it is no
 	-- longer usable.
 	}
+
+openProxyConnection
+	::  Maybe (S.Set Logs.Proxy.Proxy)
+	-> ProxyRunnerMap
+	-> TMVar ProxyConnectionPool
+	-> ProxyConnectionPoolSize
+	-> ClusterConcurrency
+	-> ProxyConnectionKey
+	-> TMVar (IO ())
+	-> ConnectionParams
+	-> TMVar ()
+	-> IO (Either ConnectionProblem P2PConnectionPair)
+openProxyConnection myproxies proxyrunnermap proxypool proxyconnectionpoolsize clusterconcurrency proxykey relv connparams ready = do
+	proxyrunner <- getProxyRunner proxyrunnermap proxykey
+	let unusable reason = do
+		void $ (proxyRunner proxyrunner) (quiesce True)
+		return $ Left $ ConnectionFailed reason
+	(proxyRunner proxyrunner)
+		(checkCanProxy' myproxies (connectionServerUUID connparams)) >>= \case
+			Right (Right (Right proxyremote)) ->
+				proxyconnection proxyrunner $ openProxyConnectionToRemote
+					(connectionProtocolVersion connparams)
+					bypass proxyremote proxykey
+			Right (Right (Left clusteruuid)) ->
+				proxyconnection proxyrunner $ openProxyConnectionToCluster
+					(connectionProtocolVersion connparams)
+					bypass clusteruuid clusterconcurrency proxykey
+			Right (Left reason) -> 
+				unusable $ fromMaybe "unknown uuid" reason
+			Left ex ->
+				unusable $ show ex
+  where
+	bypass = P2P.Bypass $ S.fromList $ connectionBypass connparams
+	proxyconnection proxyrunner openconn =
+		(proxyRunner proxyrunner) openconn >>= \case
+			Right conn -> proxyConnection proxyconnectionpoolsize
+				relv connparams proxyrunner proxypool proxyrunnermap conn ready
+			Left ex -> return $ Left $
+				ConnectionFailed $ show ex
 
 localConnection
 	:: TMVar (IO ())
@@ -508,7 +519,7 @@ proxyConnection
 	:: ProxyConnectionPoolSize
 	-> TMVar (IO ())
 	-> ConnectionParams
-	-> (Annex () -> IO (Either SomeException ()))
+	-> ProxyRunner
 	-> TMVar ProxyConnectionPool
 	-> ProxyRunnerMap
 	-> ProxyConnection
@@ -519,7 +530,7 @@ proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyru
 		mkP2PConnectionPair connparams ("http client", "proxy")
 	clientrunst <- mkClientRunState connparams
 	proxyfromclientrunst <- mkClientRunState connparams
-	asyncworker <- async $ runner $ do
+	asyncworker <- async $ (proxyRunner runner) $ do
 		liftIO $ atomically $ putTMVar ready ()
 		proxystate <- liftIO Proxy.mkProxyState
 		let proxyparams = Proxy.ProxyParams
