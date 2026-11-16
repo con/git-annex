@@ -520,6 +520,8 @@ proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyru
 	clientrunst <- mkClientRunState connparams
 	proxyfromclientrunst <- mkClientRunState connparams
 	asyncworker <- async $ runner $ do
+		u <- Annex.getState Annex.annexunique
+		liftIO $ debug "P2P.Http" $ "Running proxy connection " ++ show proxyconn ++ " " ++ show (hashUnique u)
 		liftIO $ atomically $ putTMVar ready ()
 		proxystate <- liftIO Proxy.mkProxyState
 		let proxyparams = Proxy.ProxyParams
@@ -883,6 +885,8 @@ quiesceAnnexWorker workerlimit (workerid, workerstrd) = do
 closeProxyConnection :: (Annex () -> IO a) -> ProxyRunnerMap -> ProxyConnection -> IO ()
 closeProxyConnection runner proxyrunnermap proxyconn = do
 	void $ runner $ do
+		u <- Annex.getState Annex.annexunique
+		liftIO $ debug "P2P.Http" $ "Quescing proxy connection " ++ show proxyconn ++ " " ++ show (hashUnique u)
 		proxyConnectionCloser proxyconn
 		quiesce True
 	atomically $ do
