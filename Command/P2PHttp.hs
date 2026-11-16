@@ -166,7 +166,7 @@ startIO o
 				maker <- liftIO . mkAnnexWorkerMaker =<< Annex.gitRepo
 				let workerlimit' = setAnnexWorkerLimitName (Git.repoDescribe r) workerlimit
 				mkstannex authenv oldst lockedfilesqsem
-					workerlimit maker
+					workerlimit' maker
 		return (mconcat sts)
 			{ updateRepos = updaterepos authenv
 			}
@@ -245,7 +245,7 @@ runServer o mst = go `finally` serverShutdownCleanup mst
 		Socket.listen sock Socket.maxListenQueue
 		return sock
 
-mkServerState :: Options -> M.Map Auth P2P.ServerMode -> LockedFilesQSem -> AnnexWorkerLimit -> IO AnnexWorker -> Annex P2PHttpServerState
+mkServerState :: Options -> M.Map Auth P2P.ServerMode -> LockedFilesQSem -> AnnexWorkerLimit -> AnnexWorkerMaker -> Annex P2PHttpServerState
 mkServerState o authenv lockedfilesqsem workerlimit maker = 
 	withAnnexWorkerPool (jobsOption o) (cpusOption o) workerlimit maker $
 		mkP2PHttpServerState
