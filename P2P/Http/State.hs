@@ -379,7 +379,7 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 			let proxykey = mkProxyConnectionKey connparams
 			in atomically (getProxyConnectionPool proxypool proxykey) >>= \case
 				Just conn -> do
-					proxyrunner <- getProxyRunner proxyworkermap proxykey
+					proxyrunner <- proxyRunner <$> getProxyRunner proxyworkermap proxykey
 					proxyConnection proxyconnectionpoolsize relv connparams proxyrunner proxypool proxyworkermap conn ready
 				Nothing -> checkcanproxy runnertype annexstate annexread myproxies proxykey relv connparams ready
 	  where
@@ -392,28 +392,26 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 			Right (Left reason) -> return $ Left $
 				ConnectionFailed $ 
 					fromMaybe "unknown uuid" reason
-			Right (Right (Right proxyremote)) -> do
-				proxyrunner <- getProxyRunner proxyworkermap proxykey
-				proxyconnection $
-					proxyrunner $ openProxyConnectionToRemote
-						(connectionProtocolVersion connparams)
-						bypass proxyremote proxykey
-			Right (Right (Left clusteruuid)) -> do
-				proxyrunner <- getProxyRunner proxyworkermap proxykey
-				proxyconnection $
-					proxyrunner $ openProxyConnectionToCluster
-						(connectionProtocolVersion connparams)
-						bypass clusteruuid clusterconcurrency proxykey
+			Right (Right (Right proxyremote)) ->
+				proxyconnection $ openProxyConnectionToRemote
+					(connectionProtocolVersion connparams)
+					bypass proxyremote proxykey
+			Right (Right (Left clusteruuid)) ->
+				proxyconnection $ openProxyConnectionToCluster
+					(connectionProtocolVersion connparams)
+					bypass clusteruuid clusterconcurrency proxykey
 			Left ex -> return $ Left $
 				ConnectionFailed $ show ex
 	  where
 		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
 		bypass = P2P.Bypass $ S.fromList $ connectionBypass connparams
-		proxyconnection openconn = openconn >>= \case
-			Right conn -> proxyConnection proxyconnectionpoolsize
-				relv connparams runner proxypool proxyworkermap conn ready
-			Left ex -> return $ Left $
-				ConnectionFailed $ show ex
+		proxyconnection openconn = do
+			proxyrunner <- getProxyRunner proxyworkermap proxykey
+			(proxyRunner proxyrunner) openconn >>= \case
+				Right conn -> proxyConnection proxyconnectionpoolsize
+					relv connparams (proxyRunner proxyrunner) proxypool proxyworkermap conn ready
+				Left ex -> return $ Left $
+					ConnectionFailed $ show ex
 
 data P2PConnectionPair = P2PConnectionPair
 	{ clientRunState :: RunState
@@ -1009,7 +1007,9 @@ type ProxyWorkerMap = TMVar (AnnexWorkerMaker, M.Map ProxyConnectionKey (TMVar A
 mkProxyConnectionPool :: IO (TMVar ProxyConnectionPool)
 mkProxyConnectionPool = newTMVarIO (0, mempty)
 
-getProxyRunner :: ProxyWorkerMap -> ProxyConnectionKey -> IO (Annex a -> IO (Either SomeException a))
+data ProxyRunner = ProxyRunner (TMVar Annex.AnnexState) Annex.AnnexRead
+
+getProxyRunner :: ProxyWorkerMap -> ProxyConnectionKey -> IO ProxyRunner
 getProxyRunner v k = do
 	v'@(maker, m) <- atomically (takeTMVar v)
 	(stv, rd) <- case M.lookup k m of
@@ -1023,7 +1023,10 @@ getProxyRunner v k = do
 			let worker = (stv, rd)
 			atomically $ putTMVar v (maker, M.insert k worker m)
 			return worker
-	return $ handleRequestAnnex' stv rd
+	return $ ProxyRunner stv rd
+
+proxyRunner :: ProxyRunner -> Annex a -> IO (Either SomeException a)
+proxyRunner (ProxyRunner stv rd) = handleRequestAnnex' stv rd
 
 -- Returns any older ProxyConnection that was evicted from the pool.
 putProxyConnectionPool
