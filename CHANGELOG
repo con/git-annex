@@ -4,7 +4,8 @@ git-annex (10.20261114) UNRELEASED; urgency=medium
   * p2phttp: Fix failure to flush a proxy connection after a failed lock.
   * p2phttp: When serving multiple repositories with --directory,
     --proxyconnections is the total number of connections to keep open,
-    across all repositories.
+    across all repositories, rather than the old behavior of keeping
+    up to that many connections open per repository.
 
  -- Joey Hess <id@joeyh.name>  Mon, 16 Nov 2026 11:22:28 -0400
 
