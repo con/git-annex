@@ -494,7 +494,9 @@ serveLockContent mst su apiver (B64Key k) cu bypass sec auth =
 			Just (locker, lockid) -> do
 				liftIO $ storeLock lockid locker st
 				return $ LockResult True (Just lockid)
-			Nothing -> return $ LockResult False Nothing
+			Nothing -> do
+				releaseP2PConnection conn
+				return $ LockResult False Nothing
 	
 	lock conn st = do
 		lockresv <- newEmptyTMVarIO

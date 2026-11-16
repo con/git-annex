@@ -1,3 +1,10 @@
+git-annex (10.20261114) UNRELEASED; urgency=medium
+
+  * p2phttp: Fix flushing of idle proxy connections.
+  * p2phttp: Fix failure to flush a proxy connection after a failed lock.
+
+ -- Joey Hess <id@joeyh.name>  Mon, 16 Nov 2026 11:22:28 -0400
+
 git-annex (10.20261105) UNRELEASED; urgency=medium
 
   * The Linux arm64-ancient build has reached end of security support 
@@ -20,7 +27,6 @@ git-annex (10.20261105) UNRELEASED; urgency=medium
   * NoLLMDependencies: Update for network and http-semantics. 
   * p2phttp: When --directory is used to serve a large number of
     repositories, avoid using too many helper processes and open files.
-  * p2phttp: Fix flushing of idle proxy connections.
 
  -- Joey Hess <id@joeyh.name>  Mon, 26 Oct 2026 18:34:32 -0400
 
