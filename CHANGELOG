@@ -2,8 +2,9 @@ git-annex (10.20261114) UNRELEASED; urgency=medium
 
   * p2phttp: Fix flushing of idle proxy connections.
   * p2phttp: Fix failure to flush a proxy connection after a failed lock.
-  * p2phttp: --proxyconnections is the total number of connections to
-    keep open, across all repositories when serving multiple with --directory
+  * p2phttp: When serving multiple repositories with --directory,
+    --proxyconnections is the total number of connections to keep open,
+    across all repositories.
 
  -- Joey Hess <id@joeyh.name>  Mon, 16 Nov 2026 11:22:28 -0400
 
