@@ -43,7 +43,5 @@ needing the GC, due to cleanup actions.
 
 And made --proxyconnections be counted across all repositories.
 
-This works fine in single repository mode, but in --directory mode there
-is still a bug, I'm sometimes seeing multiple proxy connections being left
-open (one per proxied remote).
+And it all seems to be working now.
 """]]
