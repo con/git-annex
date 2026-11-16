@@ -59,7 +59,7 @@ convenient way to download the content of any key, by using the path
 * `--jobs=N` `-JN`
 
   This or annex.jobs must be set to configure the number of worker
-  threads that serve connections to the webserver.
+  threads, per repository served, that serve connections to the webserver.
 
   This must be set to 2 or more, since the webserver needs one thread
   for itself. 
