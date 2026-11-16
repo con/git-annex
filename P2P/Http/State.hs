@@ -557,8 +557,8 @@ proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyru
 					now <- getPOSIXTime
 					evicted <- atomically $ putProxyConnectionPool proxypool proxyconnectionpoolsize connparams $
 						proxyconn { proxyConnectionLastUsed = now }
-					mapM_ (closeProxyConnection runner proxyrunnermap) evicted
-				else closeProxyConnection runner proxyrunnermap proxyconn
+					mapM_ (closeProxyConnection proxyrunnermap) evicted
+				else closeProxyConnection proxyrunnermap proxyconn
 			either throwM return r
 				
 	return $ Right $ P2PConnectionPair
@@ -880,9 +880,10 @@ quiesceAnnexWorker workerlimit (workerid, workerstrd) = do
 		Right () -> return ()
 
 -- Close a proxy connection, and release resources used by the remote.
-closeProxyConnection :: (Annex () -> IO a) -> ProxyRunnerMap -> ProxyConnection -> IO ()
-closeProxyConnection runner proxyrunnermap proxyconn = do
-	void $ runner $ do
+closeProxyConnection :: ProxyRunnerMap -> ProxyConnection -> IO ()
+closeProxyConnection proxyrunnermap proxyconn = do
+	runner <- getProxyRunner proxyrunnermap (proxyConnectionKey proxyconn)
+	void $ proxyRunner runner $ do
 		proxyConnectionCloser proxyconn
 		quiesce True
 	atomically $ do
