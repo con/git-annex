@@ -1047,7 +1047,7 @@ putProxyConnectionPool' maxsz k conn sz m =
 		Just [] -> ((succ sz, M.insert k [conn] m), Nothing)
 		Just cs -> if sz >= maxsz
 			then ((sz, M.insert k (conn : dropFromEnd 1 cs) m), lastMaybe cs)
-			else ((sz, M.insert k (conn : cs) m), Nothing)
+			else ((succ sz, M.insert k (conn : cs) m), Nothing)
 
 removeOldestProxyConnectionPool :: ProxyConnectionPool -> (ProxyConnectionPool, Maybe ProxyConnection)
 removeOldestProxyConnectionPool (sz, m) = 
