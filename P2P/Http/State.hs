@@ -51,7 +51,6 @@ import Control.Concurrent.Async
 import Control.Concurrent.STM
 import Data.Time.Clock.POSIX
 import Data.Unique
-import System.Mem
 
 data P2PHttpServerState = P2PHttpServerState
 	{ servedRepos :: M.Map UUID PerRepoServerState
@@ -888,16 +887,10 @@ closeProxyConnection runner proxyworkermap proxyconn = do
 	void $ runner $ do
 		proxyConnectionCloser proxyconn
 		quiesce True
-	-- As long as the ProxyWorkerMap still contains the AnnexState
-	-- that has the proxied Remote in it, the resources used
-	-- by that remote will not get closed.
 	atomically $ do
 		(maker, m) <- takeTMVar proxyworkermap
 		let !m' = M.delete (proxyConnectionKey proxyconn) m
 		putTMVar proxyworkermap (maker, m')
-	-- Force garbage collection to ensure that the all used resources
-	-- are promptly freed.
-	liftIO $ performBlockingMajorGC
 
 -- When there is a WorkerLimit, handleRequestAnnex may warm up
 -- an Annex state, starting helper processes, opening file handles etc.
