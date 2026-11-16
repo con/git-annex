@@ -315,20 +315,20 @@ mkP2PHttpServerState
 	-> ProxyConnectionPoolSize
 	-> ClusterConcurrency
 	-> LockedFilesQSem
+	-> TMVar ProxyConnectionPool
 	-> AnnexWorkerLimit	
 	-> AnnexWorkerPool
 	-> ProxyWorkerMap
 	-> Annex P2PHttpServerState
-mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterconcurrency lockedfilesqsem workerlimit workerpool proxyworkermap = do
+mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterconcurrency lockedfilesqsem proxypool workerlimit workerpool proxyworkermap = do
 	enableInteractiveBranchAccess
 	myuuid <- getUUID
 	myproxies <- M.lookup myuuid <$> getProxies
 	reqv <- liftIO newEmptyTMVarIO
 	relv <- liftIO newEmptyTMVarIO
 	endv <- liftIO newEmptyTMVarIO
-	proxypool <- liftIO $ newTMVarIO (0, mempty)
 	asyncservicer <- liftIO $ async $
-		servicer myuuid myproxies proxypool reqv relv endv
+		servicer myuuid myproxies reqv relv endv
 	let servinguuids = myuuid : map proxyRemoteUUID (maybe [] S.toList myproxies)
 	annexstate <- liftIO . newTMVarIO =<< dupState
 	annexread <- Annex.getRead id
@@ -354,7 +354,7 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 		() <- atomically $ takeTMVar ready
 		atomically $ takeTMVar respvar
 
-	servicer myuuid myproxies proxypool reqv relv endv = do
+	servicer myuuid myproxies reqv relv endv = do
 		reqrel <- liftIO $
 			atomically $ 
 				(Right <$> takeTMVar reqv)
@@ -364,15 +364,15 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 				(Left . Left <$> readTMVar endv)
 		case reqrel of
 			Right (runnertype, annexstate, annexread, connparams, ready, respvar) -> do
-				servicereq runnertype annexstate annexread myuuid myproxies proxypool relv connparams ready
+				servicereq runnertype annexstate annexread myuuid myproxies relv connparams ready
 					>>= atomically . putTMVar respvar
-				servicer myuuid myproxies proxypool reqv relv endv
+				servicer myuuid myproxies reqv relv endv
 			Left (Right releaseconn) -> do
 				void $ tryNonAsync releaseconn
-				servicer myuuid myproxies proxypool reqv relv endv
+				servicer myuuid myproxies reqv relv endv
 			Left (Left ()) -> return ()
 	
-	servicereq runnertype annexstate annexread myuuid myproxies proxypool relv connparams ready
+	servicereq runnertype annexstate annexread myuuid myproxies relv connparams ready
 		| connectionServerUUID connparams == myuuid =
 			localConnection relv connparams runner ready
 		| otherwise =
@@ -381,11 +381,11 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 				Just conn -> do
 					proxyrunner <- getProxyRunner proxyworkermap proxykey
 					proxyConnection proxyconnectionpoolsize relv connparams proxyrunner proxypool proxyworkermap conn ready
-				Nothing -> checkcanproxy runnertype annexstate annexread myproxies proxypool proxykey relv connparams ready
+				Nothing -> checkcanproxy runnertype annexstate annexread myproxies proxykey relv connparams ready
 	  where
 		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
 
-	checkcanproxy runnertype annexstate annexread myproxies proxypool proxykey relv connparams ready = do
+	checkcanproxy runnertype annexstate annexread myproxies proxykey relv connparams ready = do
 		runner
 			(checkCanProxy' myproxies (connectionServerUUID connparams))
 		>>= \case
@@ -1005,6 +1005,9 @@ type ProxyConnectionPool = (Integer, M.Map ProxyConnectionKey [ProxyConnection])
 type ProxyConnectionPoolSize = Integer
 
 type ProxyWorkerMap = TMVar (AnnexWorkerMaker, M.Map ProxyConnectionKey (TMVar Annex.AnnexState, Annex.AnnexRead))
+
+mkProxyConnectionPool :: IO (TMVar ProxyConnectionPool)
+mkProxyConnectionPool = newTMVarIO (0, mempty)
 
 getProxyRunner :: ProxyWorkerMap -> ProxyConnectionKey -> IO (Annex a -> IO (Either SomeException a))
 getProxyRunner v k = do
