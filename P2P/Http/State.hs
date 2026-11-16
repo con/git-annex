@@ -1031,12 +1031,7 @@ putProxyConnectionPool
 	-> STM [ProxyConnection]
 putProxyConnectionPool proxypool maxsz connparams conn = do
 	(sz, m) <- takeTMVar proxypool
-	let ((sz', m'), evicted) = case M.lookup k m of
-		Nothing -> ((succ sz, M.insert k [conn] m), Nothing)
-		Just [] -> ((succ sz, M.insert k [conn] m), Nothing)
-		Just cs -> if sz >= maxsz
-			then ((sz, M.insert k (conn : dropFromEnd 1 cs) m), lastMaybe cs)
-			else ((sz, M.insert k (conn : cs) m), Nothing)
+	let ((sz', m'), evicted) = putProxyConnectionPool' maxsz k conn sz m
 	let ((sz'', m''), evicted') = if sz' > maxsz
 		then removeOldestProxyConnectionPool (sz', m')
 		else ((sz', m'), Nothing)
@@ -1044,6 +1039,15 @@ putProxyConnectionPool proxypool maxsz connparams conn = do
 	return $ catMaybes [evicted, evicted']
   where
 	k = mkProxyConnectionKey connparams
+
+putProxyConnectionPool' :: Ord k => Integer -> k -> c -> Integer -> M.Map k [c] -> ((Integer, M.Map k [c]), Maybe c)
+putProxyConnectionPool' maxsz k conn sz m =
+	case M.lookup k m of
+		Nothing -> ((succ sz, M.insert k [conn] m), Nothing)
+		Just [] -> ((succ sz, M.insert k [conn] m), Nothing)
+		Just cs -> if sz >= maxsz
+			then ((sz, M.insert k (conn : dropFromEnd 1 cs) m), lastMaybe cs)
+			else ((sz, M.insert k (conn : cs) m), Nothing)
 
 removeOldestProxyConnectionPool :: ProxyConnectionPool -> (ProxyConnectionPool, Maybe ProxyConnection)
 removeOldestProxyConnectionPool (sz, m) = 
