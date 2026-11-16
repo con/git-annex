@@ -381,32 +381,32 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 				Just conn -> do
 					proxyrunner <- proxyRunner <$> getProxyRunner proxyrunnermap proxykey
 					proxyConnection proxyconnectionpoolsize relv connparams proxyrunner proxypool proxyrunnermap conn ready
-				Nothing -> checkcanproxy runnertype annexstate annexread myproxies proxykey relv connparams ready
+				Nothing -> checkcanproxy myproxies proxykey relv connparams ready
 	  where
 		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
 
-	checkcanproxy runnertype annexstate annexread myproxies proxykey relv connparams ready = do
-		runner
-			(checkCanProxy' myproxies (connectionServerUUID connparams))
-		>>= \case
-			Right (Left reason) -> return $ Left $
-				ConnectionFailed $ 
-					fromMaybe "unknown uuid" reason
-			Right (Right (Right proxyremote)) ->
-				proxyconnection $ openProxyConnectionToRemote
-					(connectionProtocolVersion connparams)
-					bypass proxyremote proxykey
-			Right (Right (Left clusteruuid)) ->
-				proxyconnection $ openProxyConnectionToCluster
-					(connectionProtocolVersion connparams)
-					bypass clusteruuid clusterconcurrency proxykey
-			Left ex -> return $ Left $
-				ConnectionFailed $ show ex
+	checkcanproxy myproxies proxykey relv connparams ready = do
+		proxyrunner <- getProxyRunner proxyrunnermap proxykey
+		let unusable reason = do
+			void $ (proxyRunner proxyrunner) (quiesce True)
+			return $ Left $ ConnectionFailed reason
+		(proxyRunner proxyrunner)
+			(checkCanProxy' myproxies (connectionServerUUID connparams)) >>= \case
+				Right (Right (Right proxyremote)) ->
+					proxyconnection proxyrunner $ openProxyConnectionToRemote
+						(connectionProtocolVersion connparams)
+						bypass proxyremote proxykey
+				Right (Right (Left clusteruuid)) ->
+					proxyconnection proxyrunner $ openProxyConnectionToCluster
+						(connectionProtocolVersion connparams)
+						bypass clusteruuid clusterconcurrency proxykey
+				Right (Left reason) -> 
+					unusable $ fromMaybe "unknown uuid" reason
+				Left ex ->
+					unusable $ show ex
 	  where
-		runner = annexActionRunner runnertype workerlimit workerpool annexstate annexread
 		bypass = P2P.Bypass $ S.fromList $ connectionBypass connparams
-		proxyconnection openconn = do
-			proxyrunner <- getProxyRunner proxyrunnermap proxykey
+		proxyconnection proxyrunner openconn =
 			(proxyRunner proxyrunner) openconn >>= \case
 				Right conn -> proxyConnection proxyconnectionpoolsize
 					relv connparams (proxyRunner proxyrunner) proxypool proxyrunnermap conn ready
