@@ -24,7 +24,10 @@ module P2P.Http.Server (
 import Annex.Common
 import P2P.Http
 import P2P.Http.Types
+import P2P.Http.Types.Internal
 import P2P.Http.State
+import P2P.Http.Locker
+import P2P.Http.Workers
 import P2P.Protocol hiding (Offset, Bypass, auth)
 import qualified P2P.Protocol
 import P2P.IO

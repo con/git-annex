@@ -13,7 +13,9 @@ module Command.P2PHttp where
 
 import Command hiding (jobsOption, cpusOption)
 import P2P.Http.Server
+import P2P.Http.Types.Internal
 import P2P.Http.Url
+import P2P.Http.Workers
 import qualified P2P.Protocol as P2P
 import Utility.Env
 import Annex.UUID

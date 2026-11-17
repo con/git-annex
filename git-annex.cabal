@@ -963,11 +963,15 @@ Executable git-annex
     P2P.Auth
     P2P.Generic
     P2P.Http
+    P2P.Http.Client
+    P2P.Http.Connection
+    P2P.Http.Locker
     P2P.Http.Server
     P2P.Http.State
     P2P.Http.Types
-    P2P.Http.Client
+    P2P.Http.Types.Internal
     P2P.Http.Url
+    P2P.Http.Workers
     P2P.IO
     P2P.Protocol
     P2P.Proxy
