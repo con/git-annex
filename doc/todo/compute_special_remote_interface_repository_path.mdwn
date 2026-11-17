@@ -1,0 +1,7 @@
+Could git-annex communicate the repo path to the compute program?
+
+@matrss requested this for use by a compute program wrapper that
+can get keys from submodules, so needs to know where the repo is in order
+to access the submodules. --[[Joey]]
+
+[[!tag projects/ICE4]]
