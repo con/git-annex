@@ -1,0 +1,22 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 1"""
+ date="2026-11-17T15:31:57Z"
+ content="""
+Maybe another angle on this is that git-annex branch changes with
+incorrect information for the local repository should be automatically
+corrected.
+
+Then the existing repository size tracking could be used for a quota
+(Ignoring keys w/o a stated size which could just be rejected from
+being received by a repository with a quota). Perhaps supplimented
+with the size of partially transferred objects.
+
+Since calcBranchRepoSizes already sees all changes to location logs,
+it could just check if changes for the local repository are accurate.
+And journal a correction to the location log when they're not.
+
+When the git-annex branch is updated locally, we know those changes are
+accurate, so it could skip the double checking them. That would make
+this have almost zero overhead.
+"""]]
