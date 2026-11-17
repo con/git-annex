@@ -1,0 +1,25 @@
+Collect a number that could be used to enforce a (soft) quota, 
+updating automatically as objects are received and removed.
+
+`git annex info --json --bytes --show 'annex sizes of repositories'` cannot
+be used for a quota because bad information could be put into the
+git-annex branch. (Eg send objects to the server, then pull the git-annex
+branch from the server to get its updates, and overwrite them.)
+
+`git annex info --json --bytes --show 'local annex size'` is too slow
+to query since it walks the object directory tree.
+
+Also both of the above omit the size of keys w/o a stated size.
+A quota needs to include the actual file size of such keys.
+
+And this should also handle partially transferred objects. It would be
+possible to count each chunk as it's received, and update the value
+stored on disk after each megabyte or gigabyte. (Make the update granularity
+tunable with a git config.)
+
+This is complicated by concurrency. For example 2 processes can both drop
+the same key at the same time and both succeed, so if both update the
+number it would be wrong. Database.RepoSize already deals with much the
+same problems for live size changes.
+
+[[!tag projects/ICE4]]
