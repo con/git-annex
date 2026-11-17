@@ -6,6 +6,7 @@ git-annex (10.20261114) UNRELEASED; urgency=medium
     --proxyconnections is the total number of connections to keep open,
     across all repositories, rather than the old behavior of keeping
     up to that many connections open per repository.
+  * Renamed Memory build flag to OldCrypton.
 
  -- Joey Hess <id@joeyh.name>  Mon, 16 Nov 2026 11:22:28 -0400
 
