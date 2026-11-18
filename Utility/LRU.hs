@@ -10,8 +10,10 @@
 module Utility.LRU (
 	LRU,
 	emptyLRU,
+	sizeLRU,
 	listLRU,
 	addLRU,
+	takeLRU,
 	removeLRU,
 	popLRU,
 	mapLRU,
@@ -47,6 +49,10 @@ setnext v = M.adjust (\linkedval -> linkedval { next = v })
 emptyLRU :: LRU k v
 emptyLRU = LRU Nothing Nothing M.empty
 
+-- O(1)
+sizeLRU :: LRU k v -> Int
+sizeLRU = M.size . lruMap
+
 listLRU :: Ord k => LRU k v -> [(k, v)]
 listLRU lru = case lruFirst lru of
 	Nothing -> []
@@ -59,12 +65,13 @@ listLRU lru = case lruFirst lru of
 				Just k' -> walk k'
 				Nothing -> []
 
-removeLRU :: Ord k => LRU k v -> k -> LRU k v
-removeLRU lru k = case M.lookup k (lruMap lru) of
-	Nothing -> lru
+-- Removes a key from the LRU and returns its value.
+takeLRU :: Ord k => LRU k v -> k -> (LRU k v, Maybe v)
+takeLRU lru k =  case M.lookup k (lruMap lru) of
+	Nothing -> (lru, Nothing)
 	Just linkedval -> 
 		let !lru' = addLRU lru k (value linkedval)
-		in lru'
+		    !lru'' = lru'
 			{ lruLast = case lruLast lru' of
 				Nothing -> Nothing
 				Just k' -> case M.lookup k' (lruMap lru') of
@@ -75,12 +82,16 @@ removeLRU lru k = case M.lookup k (lruMap lru) of
 				_ -> Nothing
 			, lruMap = M.delete k $ unsetprev $ lruMap lru'
 			}
+		in (lru'', Just (value linkedval))
   where
 	unsetprev m = case M.lookup k m of
 		Nothing -> m
 		Just linkedval -> case next linkedval of
 			Nothing -> m
 			Just k' -> setprev Nothing k' m
+
+removeLRU :: Ord k => LRU k v -> k -> LRU k v
+removeLRU lru k = fst $ takeLRU lru k
 
 {- When the key already exists in the LRU, its value is updated, and it is
  - moved to last. -}
@@ -188,6 +199,8 @@ testLRU =
 	, removeLRU l4 2 == addLRU (addLRU l1 3 baz) 4 new
 	, removeLRU l4 3 == addLRU l2 4 new
 	, removeLRU l4 1 == addLRU l3no1 4 new
+	, sizeLRU l4 == 4
+	, takeLRU l4 1 == (removeLRU l4 1, Just foo)
 	]
   where
 	l1 = addLRU emptyLRU (1 :: Int) foo
