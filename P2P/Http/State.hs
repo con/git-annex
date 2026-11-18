@@ -33,6 +33,7 @@ import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import Control.Concurrent.Async
 import Control.Concurrent.STM
+import Data.Unique
 
 getPerRepoServerState :: TMVar P2PHttpServerState -> B64UUID ServerSide -> IO (Maybe PerRepoServerState)
 getPerRepoServerState mstv su = do
@@ -136,11 +137,12 @@ mkP2PHttpServerState getservermode updaterepos proxyconnectionpoolsize clusterco
 	servicereq runnertype annexstate annexread myuuid myproxies relv connparams ready
 		| connectionServerUUID connparams == myuuid =
 			localConnection relv connparams runner ready
-		| otherwise =
-			let proxykey = mkProxyConnectionKey connparams
-			in atomically (getProxyConnectionPool proxypool proxykey) >>= \case
-				Just conn -> do
-					proxyrunner <- getProxyRunner proxyrunnermap proxykey
+		| otherwise = do
+			proxykey <- mkProxyConnectionKey connparams
+				. Just <$> newUnique
+			atomically (getProxyConnectionPool proxypool proxykey) >>= \case
+				Just (proxykey', conn) -> do
+					proxyrunner <- getProxyRunner proxyrunnermap proxykey'
 					proxyConnection proxyconnectionpoolsize relv connparams proxyrunner proxypool proxyrunnermap conn ready
 				Nothing -> openProxyConnection myproxies proxyrunnermap proxypool proxyconnectionpoolsize clusterconcurrency proxykey relv connparams ready
 	  where

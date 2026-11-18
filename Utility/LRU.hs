@@ -14,6 +14,7 @@ module Utility.LRU (
 	listLRU,
 	addLRU,
 	takeLRU,
+	takeSimilarLRU,
 	removeLRU,
 	popLRU,
 	mapLRU,
@@ -22,6 +23,7 @@ module Utility.LRU (
 ) where
 
 import qualified Data.Map.Strict as M
+import Data.Unique
 
 data LRU k v = LRU
 	{ lruFirst :: Maybe k
@@ -67,28 +69,43 @@ listLRU lru = case lruFirst lru of
 
 -- Removes a key from the LRU and returns its value.
 takeLRU :: Ord k => LRU k v -> k -> (LRU k v, Maybe v)
-takeLRU lru k =  case M.lookup k (lruMap lru) of
+takeLRU lru k = case M.lookup k (lruMap lru) of
 	Nothing -> (lru, Nothing)
-	Just linkedval -> 
-		let !lru' = addLRU lru k (value linkedval)
-		    !lru'' = lru'
-			{ lruLast = case lruLast lru' of
+	Just linkedval -> (takeLRUHelper lru k linkedval, Just (value linkedval))
+
+takeLRUHelper :: Ord k => LRU k v -> k -> LinkedVal k v -> LRU k v
+takeLRUHelper lru k linkedval =
+	let !lru' = addLRU lru k (value linkedval)
+	in lru'
+		{ lruLast = case lruLast lru' of
+			Nothing -> Nothing
+			Just k' -> case M.lookup k' (lruMap lru') of
 				Nothing -> Nothing
-				Just k' -> case M.lookup k' (lruMap lru') of
-					Nothing -> Nothing
-					Just linkedval' -> next linkedval'
-			, lruFirst = case lruFirst lru' of
-				Just k' | k' /= k -> Just k'
-				_ -> Nothing
-			, lruMap = M.delete k $ unsetprev $ lruMap lru'
-			}
-		in (lru'', Just (value linkedval))
+				Just linkedval' -> next linkedval'
+		, lruFirst = case lruFirst lru' of
+			Just k' | k' /= k -> Just k'
+			_ -> Nothing
+		, lruMap = M.delete k $ unsetprev $ lruMap lru'
+		}
   where
 	unsetprev m = case M.lookup k m of
 		Nothing -> m
-		Just linkedval -> case next linkedval of
+		Just linkedval' -> case next linkedval' of
 			Nothing -> m
 			Just k' -> setprev Nothing k' m
+
+-- Takes a similar key to the passed key, but with possibly a different
+-- Unique id.
+takeSimilarLRU :: Ord k => LRU (k, Maybe Unique) v -> (k, Maybe Unique) -> (LRU (k, Maybe Unique) v, Maybe ((k, Maybe Unique), v))
+takeSimilarLRU lru (basek, _) =
+	case M.lookupGE (basek, Nothing) (lruMap lru) of
+		Nothing -> (lru, Nothing)
+		Just (k@(basek', _), linkedval)
+			| basek' == basek -> 
+				( takeLRUHelper lru k linkedval
+				, Just (k, value linkedval)
+				)
+			| otherwise -> (lru, Nothing)
 
 removeLRU :: Ord k => LRU k v -> k -> LRU k v
 removeLRU lru k = fst $ takeLRU lru k

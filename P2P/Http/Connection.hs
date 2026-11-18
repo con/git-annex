@@ -27,12 +27,12 @@ import Annex.Cluster
 import qualified P2P.Proxy as Proxy
 import qualified Types.Remote as Remote
 import Remote.List
+import Utility.LRU
 
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 import Control.Concurrent.Async
 import Control.Concurrent.STM
-import Data.Time.Clock.POSIX
 
 openProxyConnection
 	::  Maybe (S.Set Logs.Proxy.Proxy)
@@ -202,9 +202,8 @@ proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyru
 				closebothsides
 			if connstillusable
 				then liftIO $ do
-					now <- getPOSIXTime
-					evicted <- atomically $ putProxyConnectionPool proxypool proxyconnectionpoolsize connparams $
-						proxyconn { proxyConnectionLastUsed = now }
+					evicted <- atomically $ putProxyConnectionPool
+						proxypool proxyconnectionpoolsize (proxyConnectionKey proxyconn) proxyconn
 					mapM_ (closeProxyConnection proxyrunnermap) evicted
 				else closeProxyConnection proxyrunnermap proxyconn
 			either throwM return r
@@ -246,9 +245,8 @@ openedProxyConnection
 	-> ProxyConnectionKey
 	-> Annex ProxyConnection
 openedProxyConnection u desc selector closer concurrency k = do
-	now <- liftIO getPOSIXTime
 	fastDebug "P2P.Http" ("Opened proxy connection to " ++ desc)
-	return $ ProxyConnection u selector closer' concurrency now k
+	return $ ProxyConnection u selector closer' concurrency k
   where
 	closer' = do
 		fastDebug "P2P.Http" ("Closing proxy connection to " ++ desc)
@@ -292,49 +290,31 @@ openProxyConnectionToCluster clientmaxversion bypass clusteruuid concurrency k =
 putProxyConnectionPool
 	:: TMVar ProxyConnectionPool
 	-> ProxyConnectionPoolSize
-	-> ConnectionParams
+	-> ProxyConnectionKey
 	-> ProxyConnection
 	-> STM [ProxyConnection]
-putProxyConnectionPool proxypool maxsz connparams conn = do
-	(sz, m) <- takeTMVar proxypool
-	let ((sz', m'), evicted) = putProxyConnectionPool' maxsz k conn sz m
-	let ((sz'', m''), evicted') = if sz' > maxsz
-		then removeOldestProxyConnectionPool (sz', m')
-		else ((sz', m'), Nothing)
-	putTMVar proxypool (sz'', m'')
-	return $ catMaybes [evicted, evicted']
-  where
-	k = mkProxyConnectionKey connparams
+putProxyConnectionPool proxypool maxsz k conn = do
+	lru <- takeTMVar proxypool
+	let (newlru, evicted) = case takeLRU lru k of
+		(lru', Just oldconn) ->
+			(addLRU lru' k conn, Just (k, oldconn))
+		(lru', Nothing)
+			| sizeLRU lru' >= maxsz ->
+				popLRU (addLRU lru' k conn)
+			| otherwise ->
+				(addLRU lru' k conn, Nothing)
+	putTMVar proxypool newlru
+	return $ catMaybes [snd <$> evicted]
 
-putProxyConnectionPool' :: Ord k => Integer -> k -> c -> Integer -> M.Map k [c] -> ((Integer, M.Map k [c]), Maybe c)
-putProxyConnectionPool' maxsz k conn sz m =
-	case M.lookup k m of
-		Nothing -> ((succ sz, M.insert k [conn] m), Nothing)
-		Just [] -> ((succ sz, M.insert k [conn] m), Nothing)
-		Just cs -> if sz >= maxsz
-			then ((sz, M.insert k (conn : dropFromEnd 1 cs) m), lastMaybe cs)
-			else ((succ sz, M.insert k (conn : cs) m), Nothing)
-
-removeOldestProxyConnectionPool :: ProxyConnectionPool -> (ProxyConnectionPool, Maybe ProxyConnection)
-removeOldestProxyConnectionPool (sz, m) = 
-	((pred sz, m'), snd <$> headMaybe l)
-  where
-	m' = M.fromListWith (++) $ map (\(k', v) -> (k', [v])) (drop 1 l)
-	l = sortOn (proxyConnectionLastUsed . snd) $
-		concatMap (\(k', pl) -> map (k', ) pl) $
-			M.toList m
-
+-- The LRU can contain several ProxyConnections for the same remote.
+-- This gets any one of them that is for the same ConnectionParams
+-- as the passed key.
 getProxyConnectionPool
 	:: TMVar ProxyConnectionPool
 	-> ProxyConnectionKey
-	-> STM (Maybe ProxyConnection)
+	-> STM (Maybe (ProxyConnectionKey, ProxyConnection))
 getProxyConnectionPool proxypool k = do
-	(sz, m) <- takeTMVar proxypool
-	case M.lookup k m of
-		Just (c:cs) -> do
-			putTMVar proxypool (sz-1, M.insert k cs m)
-			return (Just c)
-		_ -> do
-			putTMVar proxypool (sz, m)
-			return Nothing
-
+	lru <- takeTMVar proxypool
+	let (lru', res) = takeSimilarLRU lru k
+	putTMVar proxypool lru'
+	return res

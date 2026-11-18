@@ -57,7 +57,7 @@ data Options = Options
 	, unauthAppendOnlyOption :: Bool
 	, unauthNoLockingOption :: Bool
 	, wideOpenOption :: Bool
-	, proxyConnectionsOption :: Maybe Integer
+	, proxyConnectionsOption :: Maybe Int
 	, jobsOption :: Maybe Concurrency
 	, clusterJobsOption :: Maybe Int
 	, cpusOption :: Maybe Cpus

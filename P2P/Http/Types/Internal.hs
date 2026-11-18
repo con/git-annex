@@ -14,12 +14,12 @@ import qualified P2P.Protocol as P2P
 import P2P.IO
 import Types.WorkerPool
 import qualified P2P.Proxy as Proxy
+import Utility.LRU
 
 import Servant (IsSecure)
 import qualified Data.Map.Strict as M
 import Control.Concurrent.Async
 import Control.Concurrent.STM
-import Data.Time.Clock.POSIX
 import Data.Unique
 
 data P2PHttpServerState = P2PHttpServerState
@@ -150,29 +150,36 @@ type ProxyRunnerMap = TMVar (AnnexWorkerMaker, M.Map ProxyConnectionKey ProxyRun
 
 data ProxyRunner = ProxyRunner (TMVar Annex.AnnexState) Annex.AnnexRead
 
-type ProxyConnectionKey = (UUID, UUID, [UUID], P2P.ProtocolVersion)
-
-mkProxyConnectionKey :: ConnectionParams -> ProxyConnectionKey
-mkProxyConnectionKey connparams =
-	( connectionServerUUID connparams
-	, connectionClientUUID connparams
-	, connectionBypass connparams
-	, connectionProtocolVersion connparams
-	)
-
-type ProxyConnectionPool = (Integer, M.Map ProxyConnectionKey [ProxyConnection])
-
-type ProxyConnectionPoolSize = Integer
+type ProxyConnectionPool = LRU ProxyConnectionKey ProxyConnection
 
 mkProxyConnectionPool :: IO (TMVar ProxyConnectionPool)
-mkProxyConnectionPool = newTMVarIO (0, mempty)
+mkProxyConnectionPool = newTMVarIO emptyLRU
+
+type ProxyConnectionPoolSize = Int
+
+-- A key that can be used to look up a ProxyConnection.
+-- The Unique allows storing multiple otherwise identical ones in a LRU.
+type ProxyConnectionKey =
+	( (UUID, UUID, [UUID], P2P.ProtocolVersion)
+	, Maybe Unique
+	)
+
+mkProxyConnectionKey :: ConnectionParams -> Maybe Unique -> ProxyConnectionKey
+mkProxyConnectionKey connparams unique =
+	(
+		( connectionServerUUID connparams
+		, connectionClientUUID connparams
+		, connectionBypass connparams
+		, connectionProtocolVersion connparams
+		)
+	, unique
+	)
 
 data ProxyConnection = ProxyConnection
 	{ proxyConnectionRemoteUUID :: UUID
 	, proxyConnectionSelector :: Proxy.ProxySelector
 	, proxyConnectionCloser :: Annex ()
 	, proxyConnectionConcurrency :: Proxy.ConcurrencyConfig
-	, proxyConnectionLastUsed :: POSIXTime
 	, proxyConnectionKey :: ProxyConnectionKey
 	}
 
@@ -180,6 +187,5 @@ instance Show ProxyConnection where
 	show pc = unwords
 		[ "ProxyConnection"
 		, show (proxyConnectionRemoteUUID pc)
-		, show (proxyConnectionLastUsed pc)
 		]
 

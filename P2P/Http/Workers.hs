@@ -285,7 +285,8 @@ annexActionRunner RequestRunner _ _ st rd =
 getProxyRunner :: ProxyRunnerMap -> ProxyConnectionKey -> IO ProxyRunner
 getProxyRunner v k = do
 	v'@(maker, m) <- atomically (takeTMVar v)
-	case M.lookup k m of
+	let k' = (fst k, Nothing)
+	case M.lookup k' m of
 		Just runner -> do
 			atomically $ putTMVar v v'
 			return runner
@@ -294,7 +295,7 @@ getProxyRunner v k = do
 				`onException` atomically (putTMVar v v')
 			stv <- newTMVarIO st
 			let runner = ProxyRunner stv rd
-			atomically $ putTMVar v (maker, M.insert k runner m)
+			atomically $ putTMVar v (maker, M.insert k' runner m)
 			return runner
 
 proxyRunner :: ProxyRunner -> Annex a -> IO (Either SomeException a)
