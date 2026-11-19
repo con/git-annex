@@ -19,4 +19,6 @@ than "Closed proxy connection".
 [[!commit cb5b92e9767fadec1baca0a4f463c52270b0ea3c]] had the problem,
 so later changes (to use LRU for proxy connections) did not cause a new
 bug.
+
+Update: Fixed this one too.
 """]]
