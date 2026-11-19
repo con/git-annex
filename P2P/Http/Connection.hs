@@ -100,7 +100,7 @@ localP2PConnectionPair connparams relv startworker = do
 	serverrunst <- mkServerRunState connparams
 	asyncworker <- async $
 		startworker serverrunst serverconn
-	let releaseconn closeit = atomically $ void $ tryPutTMVar relv $ do
+	let releaseconn closeit = atomically $ void $ putTMVar relv $ do
 		when closeit $ do
 			liftIO $ closeConnection clientconn
 			liftIO $ closeConnection serverconn
@@ -194,7 +194,7 @@ proxyConnection proxyconnectionpoolsize relv connparams runner proxypool proxyru
 		liftIO $ closeConnection clientconn
 
 	let releaseconn connstillusable = do
-		atomically $ void $ tryPutTMVar relv $ do
+		atomically $ void $ putTMVar relv $ do
 			unless connstillusable
 				closebothsides
 			r <- liftIO $ wait asyncworker
