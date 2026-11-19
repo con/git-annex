@@ -1,0 +1,22 @@
+[[!comment format=mdwn
+ username="joey"
+ subject="""comment 8"""
+ date="2026-11-19T19:11:58Z"
+ content="""
+Reopening as there is still a bug. More proxy connections get opened than
+closed, and the number can increase without bounds.
+
+Can be reproduced with a proxyied external special remote,
+using:
+
+	while git-annex drop --force; git-annex get --from=origin-theremote -J2; done
+
+The -J seems necessary, without concurrency there is no leak.
+
+Looking at --debug, there are more "Opened proxy connection"
+than "Closed proxy connection".
+
+[[!commit cb5b92e9767fadec1baca0a4f463c52270b0ea3c]] had the problem,
+so later changes (to use LRU for proxy connections) did not cause a new
+bug.
+"""]]
