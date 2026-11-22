@@ -1,0 +1,8 @@
+`git-annex push -C.` to an exporttree=yes remote sends the whole tree, not
+only files in the specified directory.
+
+That behavior is documented, but seems suboptimal. It should be possible to
+limit what is exported to the specified directory, and notice if there were
+any files outside that in the tree that are not present on the remote. If
+there are none, the tree export can be recorded as complete. If there are
+other files, leave the tree export incomplete. --[[Joey]]
