@@ -1,0 +1,7 @@
+Currently it does not follow symlinks. The use case for following them is
+symlinking various repositories that you want to serve into one directory.
+
+The symlink check is only done to prevent getting into an infinite loop
+following eg `foo -> .`
+
+[[!tag projects/INM7]]
