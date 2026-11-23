@@ -8,7 +8,11 @@ would vary depending on the UsedStages set used by the command.
 
 For transferStages, most files will involve a transfer with a progress bar.
 Only measure those. Measure the average total throughput of all running
-transfers.
+transfers. But also measure the time spend processing each file before and
+after the transfer progress bar. It may be that increasing the number of
+jobs does not increase total throughput, but that the overhead of other
+processing is able to be parallelized. In that case, it's still worth
+changing the number of jobs.
 
 For commandStages, measure how long it takes to process a file
 on average, divided by the number of jobs.

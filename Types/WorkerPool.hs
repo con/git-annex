@@ -95,7 +95,7 @@ commandStages = UsedStages
 -- it bottlenecks on the disk containing the repository or on the CPU.
 -- So it makes sense to run the download and verify stages separately.
 -- 
--- For uploads, there is no separate verify step to this is less likely
+-- For uploads, there is no separate verify step, so this is less likely
 -- to be useful than commandStages. However, a separate stage is provided
 -- for Uploads. That can be useful when a command downloads from one remote
 -- (eg using the network) and uploads to another remote (eg using a disk).
