@@ -1,0 +1,28 @@
+When p2phttp is serving many repositories, it currently needs to run
+several git processes in each at startup. This can make startup take a
+long time before it is listening to or responding to http requests.
+
+It should be possible for p2phttp to start up quickly, without creating
+an Annex state for each repository. And demand load it when a repositry is
+accessed. (Or load them in the background as an idle time job.)
+
+This would need a `uuid -> repository` map.
+
+That could be a sqlite database that contains eg:
+
+    UUID,InodeCache,OsPath
+
+Where the InodeCache is of the git config file that was read to learn the
+UUID. That way, in the unlikely event that a repository UUID changes, the
+new UUID is learned on startup. (It is not safe to change UUID while 
+git-annex is running of course.)
+
+Another benefit of such a map is that, when a request comes in for an
+unknown UUID, `p2phttp --directory` currently re-scans all repositories,
+making Annex states for all of them. That blocks all other (new) requests
+until complete. It should be possible to avoid any blocking of requests
+for existing repos during that scan, and I think that should be done
+to avoid any chance of DOS attack. But also using the map will speed up
+the scan, and deman loading of Annex states will too. --[[Joey]]
+
+[[!tag projects/INM7]]
