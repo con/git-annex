@@ -1,0 +1,26 @@
+Having --jobs be per-repository does not make sense when serving a lot
+of repositories. Eg, with 10k repositories, even --jobs=2 means there
+can be 20k concurrent worker threads. Which is entirely too many to be any
+kind of resource limit. At the same time, only 2 jobs per repository is
+entirely too few. And using any reasonable number of --jobs, like 100,
+with so many repositories leads to high memory use.
+
+If Annex state for repositories changes to be demand loaded and freed with
+a LRU cache, as seems likely for
+[[todo/p2phttp_startup_time_with_many_repositories]], then this would
+change to --jobs times the size of the cache. That is better, but still too
+many. With the LRU cache sized to 100 repositories (which seems reasonable
+if you have 10k total), and --jobs=100, 10k worker threads is still too
+many.
+
+A plan to fix this:
+
+* A single quantity semaphore for --jobs that gates new job state creation.
+* One prototype Annex state per active repository, to use with dupState to
+  get a new job state.
+* For each repository, have a list of idle Annex states. Once an Annex
+  state has been used to service a request, add it to its repository's
+  list, and at the same time remove one from the list of the oldest
+  repository in the LRU cache.
+
+[[!tag projects/INM7]]
