@@ -18,10 +18,11 @@ A plan to fix this:
 * A single quantity semaphore for --jobs that gates new job state creation.
 * One prototype Annex state per active repository, to use with dupState to
   get a new job state.
-* A counter for the total number of idle Annex states.
+* A counter for the total number of idle Annex states. The maximum
+  could be another tunable parameter, 1000 or so.
 * For each repository, have a list of idle Annex states. Once an Annex
   state has been used to service a request, add it to its repository's
-  list. If there are too many idle Annex states, remove one from the
-  list of the oldest repository in the LRU cache.
+  list. At the same time, if there are too many idle Annex states,
+  remove one from the list of the oldest repository in the LRU cache.
 
 [[!tag projects/INM7]]
