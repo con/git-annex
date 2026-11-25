@@ -9,3 +9,6 @@ deal with a new proxy being configured?
 This would entail making updateRepos scan for new proxies, basically.
 Then when a UUID that is not known is requested, it would rescan. Seems
 doable. --[[Joey]]
+
+> I think this does work when using --directory, but not otherwise.
+> --[[Joey]]
